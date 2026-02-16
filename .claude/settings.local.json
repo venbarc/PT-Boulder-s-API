@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:openapi.pteverywhere.com)",
+      "Bash(where:*)",
+      "Bash(php -v:*)",
+      "Bash(composer --version:*)",
+      "Bash(C:phpcomposer.bat --version)",
+      "Bash(cmd /c:*)",
+      "Bash(php -r:*)",
+      "Bash(php:*)"
+    ]
+  }
+}

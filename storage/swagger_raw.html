@@ -1,0 +1,383 @@
+<html>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="content-language" content="en" />
+  <meta name="description" content="Actionhero.js" />
+  <link rel="icon" href="https://pteverywhere-useast1.s3.amazonaws.com/setting/Logo/PtE_57x57.png" />
+  <title>Actionhero.js Swagger Documentation</title>
+
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+
+  <script type="text/javascript" src="/public/javascript/ActionheroWebsocketClient.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- and it's easy to individually load additional languages -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+  <style>
+    pre {
+      font-size: 14px !important;
+      font-family: sans-serif !important;
+    }
+
+    pre span {
+      line-height: 24px;
+    }
+
+    .content-webhook-element {
+      margin: 10px !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div id="swagger-ui" />
+  </div>
+
+
+  <div id="content-webhook" style="display: none;">
+    <div class="content-webhook-element">
+      <pre>
+        <div><h2>Get Started</h2>
+          <span>This document explains how to set up a Webhook that will notify you whenever your app's data publish any changes.</span>
+          <br/>
+          <span>Setting up the Webhook requires you to:</span>
+            <span>1. Create an endpoint on a secure server that can process HTTPS requests.</span>
+            <span>2. Decrypt the data received from webhook.</span>
+            <br/>
+          <span>These steps are explained in detail below.</span>
+        </div>
+    </pre>
+      <pre>
+      <div><h2>Create an endpoint</h2>
+        <span>Your endpoint must be able to process POST HTTPS request. Since the request use HTTPs, your server must have a valid 
+        TLS or SSL certificate correctly configured and installed. Self-signed certificates are not supported.</span>
+        <br/>
+        <span>Whenever there's a change in the data, we will send your endpoint a POST request with a JSON payload describing the change.</span>
+        <br/>
+        <span>For example, when a user book an appointment, we would send you a POST request that would look something like this:</span>
+      </div>
+      <code class="language-javascript">
+        POST / HTTPS/1.1
+        Host: your-clever-domain-name.com/webhooks
+        Content-Type: application/json
+        X-Hub-Signature-256: sha256={super-long-SHA256-signature}
+        Content-Length: 311
+
+        {
+          "data": "encrypted-data"
+        }
+      </code>       
+    </pre>
+
+      <pre>
+      <div><h2>Payload Contents</h2></div>
+      <span>Payloads will contain an encrypted object describing the change. We format all payloads with JSON, so after decrypt the data you can parse the 
+      payload using common JSON parsing methods or packages.</span>
+      <br/>
+      <span>Appointment created payload example</span>
+      <code class="language-javascript">
+        {
+          _id: { type: Schema.Types.ObjectId },
+          Client: { type: Schema.Types.ObjectId },
+          Title: String,
+          Status: String,
+          Type: String,
+          Note: String,
+          StartDateTime: { type: Date },
+          EndDateTime: { type: Date },
+          CreatedDate: { type: Date },
+          Service: { type: Schema.Types.ObjectId },
+          Deleted: { type: Boolean },
+          Location: { type: Schema.Types.ObjectId },
+        }
+      </code>
+    </pre>
+      <pre>
+      <div>
+        <h2>Decrypt the data</h2>
+        <span>After registed for a webhook service, we will provide user a secret key which use to decrypt the data payload.</span>
+        <span>The example codes below explain how to decrypt the data with the key provided</span>
+      </div>
+    </pre>
+      <pre>
+      <div><h3>NodeJS</h3></div>
+      <code class="language-javascript">
+        import { AES, enc, mode, pad } from "crypto-js";
+        const decrypt = (encryptedString: string, secretKey: string) => {
+          try {
+            if (!encryptedString || !secretKey) {
+              return null;
+            }
+            const key = enc.Utf8.parse(secretKey);
+            let decryptedBytes = AES.decrypt(encryptedString, key, {
+              mode: mode.ECB,
+              padding: pad.Pkcs7
+            });
+
+            let decryptedText = decryptedBytes.toString(enc.Utf8);
+
+            return JSON.parse(decryptedText);
+          } catch (e) {
+            console.log(e);
+            return null;
+          }
+        };
+      </code>
+    </pre>
+
+      <pre>
+      <div><h3>Java</h3></div>
+      <code class="language-java">
+        import java.util.Base64;
+        import javax.crypto.Cipher;
+        import javax.crypto.spec.SecretKeySpec;
+
+        public static String decrypt(final String cipherString, final String secretKey) {
+          try {
+              if (cipherString == null || cipherString.isEmpty()) {
+                  return null;
+              }
+
+              if (secretKey == null || secretKey.isEmpty()) {
+                  return null;
+              }
+
+              // Get Key
+              byte[] key = secretKey.getBytes("UTF-8");
+              SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+
+              Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
+              cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+              return new String(cipher.doFinal(Base64.getDecoder()
+                      .decode(cipherString)));
+          } catch (Exception e) {
+              System.out.println("Error while decrypting: " + e.toString());
+          }
+          return null;
+        }
+      </code>
+    </pre>
+
+      <pre>
+      <div><h3>.NET</h3></div>
+      <code class="language-csharp">
+        using System.Security.Cryptography;
+        using System.Text;
+
+        public static string? Decrypt(string cipherString, string secretKey)
+        {
+            if (string.IsNullOrEmpty(secretKey))
+            {
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(cipherString))
+            {
+                return null;
+            }
+
+            byte[] key = Encoding.UTF8.GetBytes(secretKey);
+            byte[] cipherBytes = Convert.FromBase64String(cipherString);
+
+            byte[] decryptedBytes = null;
+
+            // Set up the encryption objects
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.Mode = CipherMode.ECB;
+                aes.Padding = PaddingMode.None;
+
+                // Decrypt the input ciphertext using the AES algorithm
+                using (ICryptoTransform decryptor = aes.CreateDecryptor())
+                {
+                    decryptedBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
+                }
+            }
+            string decryptedText = Encoding.UTF8.GetString(decryptedBytes);
+            
+            return decryptedText;
+        }
+      </code>
+    </pre>
+
+    <h2>Webhook events</h2>
+      <pre>
+        <div><h3>Patient create payload data:</h3></div>
+        <code class="language-json">
+          {
+            type: "patient.create",
+            data: {
+              _id: "",
+              Client: "",
+              FirstName: "Open",
+              LastName: "API",
+              MiddleName: "",
+              CreatedDate: "2022-12-05T02:50:12.359Z",
+              Email: "openapi@pteverywhere.com",
+              Phone: "",
+            }
+          }
+        </code>
+      </pre>
+
+      <pre>
+        <div><h3>Patient update payload data:</h3></div>
+        <code class="language-json">
+          {
+            type: "patient.update",
+            data: {
+              _id: "",
+              Client: "",
+              FirstName: "Open",
+              LastName: "API",
+              MiddleName: "",
+              CreatedDate: "2022-12-05T02:50:12.359Z",
+              Email: "openapi@pteverywhere.com",
+              Phone: "",
+            }
+          }
+        </code>
+      </pre>
+
+      <pre>
+        <div><h3>Appointment create payload data:</h3></div>
+        <code class="language-json">
+          {
+            type: "appointment.created",
+            data: {
+              _id: "",
+              Client: "",
+              Title: undefined,
+              Status: "New Appointment",
+              Type: "Standard",
+              Note: undefined,
+              StartDateTime: "2024-02-24T03:45:00.000Z",
+              EndDateTime: "2024-02-24T04:45:00.000Z",
+              CreatedDate: "2024-02-23T04:52:21.657Z",
+              Service: "",
+              Deleted: false,
+              Location: "",
+              Attendee: "",
+              Booker: "",
+            }
+          }
+        </code>
+      </pre>
+
+      <pre>
+        <div><h3>Appointment update payload data:</h3></div>
+        <code class="language-json">
+          {
+            type: "appointment.update",
+            data: {
+              _id: "",
+              Client: "",
+              Title: undefined,
+              Status: "New Appointment",
+              Type: "Standard",
+              Note: undefined,
+              StartDateTime: "2024-02-24T03:45:00.000Z",
+              EndDateTime: "2024-02-24T04:45:00.000Z",
+              CreatedDate: "2024-02-23T04:52:21.657Z",
+              Service: "",
+              Deleted: false,
+              Location: "",
+              Attendee: "",
+              Booker: "",
+            }
+          }
+        </code>
+      </pre>
+
+      <pre>
+        <div><h3>Patient Invoice create payload data:</h3></div>
+        <code class="language-json">
+          {
+            type: "patient_invoice.created",
+            data: {
+              _id: "637c75ecc8d3870a767523ba",
+              Client: "637c75ecc8d3870a767523bb",
+              Note: "",
+              PaymentStatus: "unpaid",
+              IsDeleted: "N",
+              Patient: "",
+              Therapists: [
+              ],
+              Collect: undefined,
+              Balance: 200,
+              Service: "637c75ecc8d3870a767523b7",
+              Location: "637c75ecc8d3870a767523c2",
+              CreatedAt: "2024-02-23T07:11:14.248Z",
+            }
+          }
+        </code>
+      </pre>
+
+      <pre>
+        <div><h3>Patient Invoice update payload data:</h3></div>
+        <code class="language-json">
+          {
+            type: "patient_invoice.updated",
+            data: {
+              _id: "637c75ecc8d3870a767523ba",
+              Client: "637c75ecc8d3870a767523bb",
+              Note: "",
+              PaymentStatus: "unpaid",
+              IsDeleted: "N",
+              Patient: "",
+              Therapists: [
+              ],
+              Collect: undefined,
+              Balance: 200,
+              Service: "637c75ecc8d3870a767523b7",
+              Location: "637c75ecc8d3870a767523c2",
+              CreatedAt: "2024-02-23T07:11:14.248Z",
+            }
+          }
+        </code>
+      </pre>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    const SwaggerUI = SwaggerUIBundle({
+      url: "/api/v2/swagger",
+      dom_id: "#swagger-ui",
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+      plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+      tagsSorter: 'alpha',
+      onComplete: function () {
+        const elementWebhook = $($('[id$=_Webhook]')[0]);
+        elementWebhook.parent().find(".operation-tag-content").append($("#content-webhook").html())
+        var foo = $('[id$=_Webhook]')[0];
+
+        var observer = new MutationObserver(function (mutations) {
+          const isOpen = elementWebhook.attr('data-is-open');
+          if (isOpen) {
+            elementWebhook.parent().find(".operation-tag-content").append($("#content-webhook")
+              .html())
+          }
+        });
+        observer.observe(foo, {
+          attributes: true,
+          attributeFilter: ['data-is-open']
+        });
+
+
+      },
+    });
+
+    hljs.highlightAll();
+  </script>
+</body>
+
+</html>
