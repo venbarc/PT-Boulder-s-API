@@ -43,6 +43,8 @@
             <div class="dash-source-tabs">
                 <a href="{{ route('dashboard', ['source' => 'provider_revenue', 'per_page' => $perPage]) }}" class="dash-tab {{ $source === 'provider_revenue' ? 'active' : '' }}">Provider Revenue</a>
                 <a href="{{ route('dashboard', ['source' => 'general_visit', 'per_page' => $perPage]) }}" class="dash-tab {{ $source === 'general_visit' ? 'active' : '' }}">General Visit</a>
+                <a href="{{ route('dashboard', ['source' => 'demographics', 'per_page' => $perPage]) }}" class="dash-tab {{ $source === 'demographics' ? 'active' : '' }}">Demographics</a>
+                <a href="{{ route('dashboard', ['source' => 'patient_report', 'per_page' => $perPage]) }}" class="dash-tab {{ $source === 'patient_report' ? 'active' : '' }}">Patient Report</a>
             </div>
 
             <div class="dash-actions">

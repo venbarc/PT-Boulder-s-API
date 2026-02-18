@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PteDemographic;
 use App\Models\PteGeneralVisit;
+use App\Models\PtePatientReport;
 use App\Models\PteProviderRevenue;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -23,6 +25,24 @@ class ExportController extends Controller
             PteGeneralVisit::class,
             PteGeneralVisit::EXPORT_COLUMNS,
             'pt_boulder_general_visit_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportDemographicsCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PteDemographic::class,
+            PteDemographic::EXPORT_COLUMNS,
+            'pt_boulder_demographics_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportPatientReportCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PtePatientReport::class,
+            PtePatientReport::EXPORT_COLUMNS,
+            'pt_boulder_patient_report_'.now()->format('Ymd_His').'.csv'
         );
     }
 
@@ -52,6 +72,12 @@ class ExportController extends Controller
                                 $line[] = $column === 'date_of_service'
                                     ? $value->format('Y-m-d')
                                     : $value->format('Y-m-d H:i:s');
+
+                                continue;
+                            }
+
+                            if (is_array($value)) {
+                                $line[] = json_encode($value, JSON_UNESCAPED_SLASHES) ?: '';
 
                                 continue;
                             }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -18,12 +19,21 @@ class PtEverywhereService
 
     protected int $tokenTtl;
 
+    protected int $requestRetries;
+
+    protected int $retryDelayMs;
+
+    protected int $retryMaxDelayMs;
+
     public function __construct()
     {
         $this->baseUrl = rtrim(config('pteverywhere.base_url'), '/');
         $this->username = config('pteverywhere.username');
         $this->password = config('pteverywhere.password');
         $this->tokenTtl = config('pteverywhere.token_ttl', 55);
+        $this->requestRetries = max(1, (int) config('pteverywhere.request_retries', 4));
+        $this->retryDelayMs = max(100, (int) config('pteverywhere.retry_delay_ms', 1200));
+        $this->retryMaxDelayMs = max($this->retryDelayMs, (int) config('pteverywhere.retry_max_delay_ms', 10000));
     }
 
     /**
@@ -170,45 +180,104 @@ class PtEverywhereService
     protected function request(string $method, string $endpoint, array $options = []): array
     {
         $url = "{$this->baseUrl}/".ltrim($endpoint, '/');
+        $attempt = 1;
         $token = $this->getToken();
-        try {
-            $response = $this->apiRequest()
-                ->withHeaders(['Authorization' => $token])
-                ->send($method, $url, $options);
 
-            // If unauthorized, clear token cache and retry once
-            if ($response->status() === 401) {
-                Log::warning('PtEverywhere: Token expired, re-authenticating...');
-                $this->clearToken();
-                $token = $this->getToken();
-
+        while ($attempt <= $this->requestRetries) {
+            try {
                 $response = $this->apiRequest()
                     ->withHeaders(['Authorization' => $token])
                     ->send($method, $url, $options);
+
+                // If unauthorized, clear token cache and retry once in this attempt.
+                if ($response->status() === 401) {
+                    Log::warning('PtEverywhere: Token expired, re-authenticating...');
+                    $this->clearToken();
+                    $token = $this->getToken();
+
+                    $response = $this->apiRequest()
+                        ->withHeaders(['Authorization' => $token])
+                        ->send($method, $url, $options);
+                }
+            } catch (ConnectionException $e) {
+                if ($attempt < $this->requestRetries) {
+                    $delayMs = $this->resolveRetryDelayMs($attempt, null);
+                    Log::warning("PtEverywhere transient connection error, retrying {$method} {$endpoint}", [
+                        'attempt' => $attempt,
+                        'max_attempts' => $this->requestRetries,
+                        'retry_in_ms' => $delayMs,
+                        'message' => $e->getMessage(),
+                    ]);
+                    usleep($delayMs * 1000);
+                    $attempt++;
+
+                    continue;
+                }
+
+                Log::error("PtEverywhere connection error: {$method} {$endpoint}", [
+                    'message' => $e->getMessage(),
+                    'attempt' => $attempt,
+                ]);
+                throw new \RuntimeException(
+                    'PtEverywhere connection failed. If you are on Windows, verify CA certificates or set PTE_API_CA_BUNDLE. '
+                    .'Original error: '.$e->getMessage(),
+                    0,
+                    $e
+                );
             }
-        } catch (ConnectionException $e) {
-            Log::error("PtEverywhere connection error: {$method} {$endpoint}", [
-                'message' => $e->getMessage(),
-            ]);
-            throw new \RuntimeException(
-                'PtEverywhere connection failed. If you are on Windows, verify CA certificates or set PTE_API_CA_BUNDLE. '
-                .'Original error: '.$e->getMessage(),
-                0,
-                $e
-            );
+
+            if (! $response->successful()) {
+                $status = $response->status();
+
+                if ($attempt < $this->requestRetries && $this->isRetryableStatus($status)) {
+                    $delayMs = $this->resolveRetryDelayMs($attempt, $response);
+                    Log::warning("PtEverywhere transient API error, retrying {$method} {$endpoint}", [
+                        'status' => $status,
+                        'attempt' => $attempt,
+                        'max_attempts' => $this->requestRetries,
+                        'retry_in_ms' => $delayMs,
+                    ]);
+                    usleep($delayMs * 1000);
+                    $attempt++;
+
+                    continue;
+                }
+
+                Log::error("PtEverywhere API error: {$method} {$endpoint}", [
+                    'status' => $status,
+                    'body' => $response->body(),
+                    'attempt' => $attempt,
+                ]);
+                throw new \RuntimeException(
+                    "PtEverywhere API error ({$status}): {$response->body()}"
+                );
+            }
+
+            return $response->json() ?? [];
         }
 
-        if (! $response->successful()) {
-            Log::error("PtEverywhere API error: {$method} {$endpoint}", [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-            throw new \RuntimeException(
-                "PtEverywhere API error ({$response->status()}): {$response->body()}"
-            );
+        throw new \RuntimeException(
+            "PtEverywhere request failed after {$this->requestRetries} attempts: {$method} {$endpoint}"
+        );
+    }
+
+    private function isRetryableStatus(int $status): bool
+    {
+        return in_array($status, [429, 500, 502, 503, 504], true);
+    }
+
+    private function resolveRetryDelayMs(int $attempt, ?Response $response): int
+    {
+        $retryAfter = $response?->header('Retry-After');
+        if (is_string($retryAfter) && is_numeric($retryAfter)) {
+            $retryAfterMs = (int) $retryAfter * 1000;
+
+            return max($this->retryDelayMs, min($retryAfterMs, $this->retryMaxDelayMs));
         }
 
-        return $response->json() ?? [];
+        $exponential = $this->retryDelayMs * (2 ** max($attempt - 1, 0));
+
+        return min($exponential, $this->retryMaxDelayMs);
     }
 
     /**
@@ -302,6 +371,75 @@ class PtEverywhereService
                 'pageSize' => $size,
             ],
         ]);
+    }
+
+    /**
+     * Fetch demographics report rows.
+     */
+    public function getDemographics(array $params = []): array
+    {
+        $fromYear = (int) ($params['fromYear'] ?? $params['from_year'] ?? now()->year);
+        $toYear = (int) ($params['toYear'] ?? $params['to_year'] ?? now()->year);
+        $page = (int) ($params['page'] ?? 1);
+        $size = (int) ($params['size'] ?? $params['per_page'] ?? 100);
+
+        return $this->post('/report/demographics', [
+            'listMonth' => $params['listMonth'] ?? [],
+            'listInsurance' => $params['listInsurance'] ?? [],
+            'fromYear' => $fromYear,
+            'toYear' => $toYear,
+            'zipCode' => $params['zipCode'] ?? $params['zip_code'] ?? '',
+            'searchStr' => $params['searchStr'] ?? '',
+            'sorting' => [
+                'sortBy' => $params['sortBy'] ?? '',
+                'sortType' => $params['sortType'] ?? 'asc',
+            ],
+            'paging' => [
+                'page' => $page,
+                'pageSize' => $size,
+            ],
+        ]);
+    }
+
+    /**
+     * Fetch patient report rows.
+     */
+    public function getPatientReport(array $params = []): array
+    {
+        $from = $params['from'] ?? $params['start_date'] ?? now()->subDays(30)->toDateString();
+        $to = $params['to'] ?? $params['end_date'] ?? now()->toDateString();
+        $page = (int) ($params['page'] ?? 1);
+        $size = (int) ($params['size'] ?? $params['per_page'] ?? 100);
+
+        $payload = [
+            'createdDate' => [
+                'startDate' => $from,
+                'endDate' => $to,
+                'timeRange' => $params['timeRange'] ?? 'All',
+            ],
+            'locations' => $params['locations'] ?? [],
+            'createdBy' => $params['createdBy'] ?? [],
+            'firstSeenBy' => $params['firstSeenBy'] ?? [],
+            'lastSeenBy' => $params['lastSeenBy'] ?? [],
+            'accountAccess' => $params['accountAccess'] ?? [],
+            'hasAppointments' => $params['hasAppointments'] ?? [],
+            'patientStatus' => $params['patientStatus'] ?? [],
+            'searchStr' => $params['searchStr'] ?? '',
+            'sorting' => [
+                'sortBy' => $params['sortBy'] ?? '',
+                'sortType' => $params['sortType'] ?? 'asc',
+            ],
+            'paging' => [
+                'page' => $page,
+                'pageSize' => $size,
+            ],
+        ];
+
+        if (isset($params['firstAppointmentDate']) && is_array($params['firstAppointmentDate'])) {
+            $payload['firstAppointmentDate'] = $params['firstAppointmentDate'];
+        }
+
+        return $this->post('/report/patient', $payload);
     }
 
     /**
