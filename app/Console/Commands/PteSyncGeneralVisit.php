@@ -128,14 +128,14 @@ class PteSyncGeneralVisit extends Command
         $updated = 0;
         $chunksProcessed = 0;
         $failedChunks = 0;
-        $start = Carbon::parse($from);
-        $end = Carbon::parse($to);
+        $fromDate = Carbon::parse($from);
+        $currentEnd = Carbon::parse($to);
 
-        while ($start->lte($end) && ($limit === null || $fetched < $limit)) {
-            $chunkStart = $start->copy();
-            $chunkEnd = $start->copy()->addDays($chunkDays - 1);
-            if ($chunkEnd->gt($end)) {
-                $chunkEnd = $end->copy();
+        while ($currentEnd->gte($fromDate) && ($limit === null || $fetched < $limit)) {
+            $chunkEnd = $currentEnd->copy();
+            $chunkStart = $currentEnd->copy()->subDays($chunkDays - 1);
+            if ($chunkStart->lt($fromDate)) {
+                $chunkStart = $fromDate->copy();
             }
 
             $chunksProcessed++;
@@ -293,7 +293,7 @@ class PteSyncGeneralVisit extends Command
 
             $fetchBar->finish();
             $this->newLine();
-            $start = $chunkEnd->copy()->addDay();
+            $currentEnd = $chunkStart->copy()->subDay();
         }
 
         return [$fetched, $created, $updated, $chunksProcessed, $failedChunks];

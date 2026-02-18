@@ -60,10 +60,19 @@
         <div class="nav-spacer"></div>
         <select class="nav-export-select" onchange="if(this.value){ window.location=this.value; this.selectedIndex=0; }">
             <option value="">Download CSV...</option>
-            <option value="{{ route('export.provider_revenue') }}">Provider Revenue CSV</option>
-            <option value="{{ route('export.general_visit') }}">General Visit CSV</option>
-            <option value="{{ route('export.demographics') }}">Demographics CSV</option>
-            <option value="{{ route('export.patient_report') }}">Patient Report CSV</option>
+            <optgroup label="Report APIs">
+                <option value="{{ route('export.provider_revenue') }}">Provider Revenue CSV</option>
+                <option value="{{ route('export.general_visit') }}">General Visit CSV</option>
+                <option value="{{ route('export.demographics') }}">Demographics CSV</option>
+                <option value="{{ route('export.patient_report') }}">Patient Report CSV</option>
+            </optgroup>
+            <optgroup label="Master Data APIs">
+                <option value="{{ route('export.therapists') }}">Therapists CSV</option>
+                <option value="{{ route('export.locations') }}">Locations CSV</option>
+                <option value="{{ route('export.services') }}">Services CSV</option>
+                <option value="{{ route('export.master_patients') }}">Patients CSV</option>
+                <option value="{{ route('export.master_users') }}">Users CSV</option>
+            </optgroup>
         </select>
     </nav>
 

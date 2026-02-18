@@ -126,11 +126,11 @@ class PteSyncDemographics extends Command
         $updated = 0;
         $chunksProcessed = 0;
         $failedChunks = 0;
-        $year = $fromYear;
+        $year = $toYear;
 
-        while ($year <= $toYear && ($limit === null || $fetched < $limit)) {
-            $chunkFrom = $year;
-            $chunkTo = min($year + $chunkYears - 1, $toYear);
+        while ($year >= $fromYear && ($limit === null || $fetched < $limit)) {
+            $chunkTo = $year;
+            $chunkFrom = max($year - $chunkYears + 1, $fromYear);
 
             $chunksProcessed++;
             $this->line("Chunk {$chunksProcessed}: {$chunkFrom} to {$chunkTo}");
@@ -149,6 +149,7 @@ class PteSyncDemographics extends Command
                         'toYear' => $chunkTo,
                         'page' => $page,
                         'size' => 100,
+                        'sortType' => 'desc',
                     ]);
 
                     $docs = $response['docs'] ?? [];
@@ -248,7 +249,7 @@ class PteSyncDemographics extends Command
 
             $fetchBar->finish();
             $this->newLine();
-            $year = $chunkTo + 1;
+            $year = $chunkFrom - 1;
         }
 
         return [$fetched, $created, $updated, $chunksProcessed, $failedChunks];

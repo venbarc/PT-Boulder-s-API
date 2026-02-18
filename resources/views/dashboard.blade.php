@@ -5,6 +5,21 @@
     <style>
         .dash-toolbar { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
         .dash-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .dash-source-panels { display: grid; gap: 0.75rem; width: 100%; }
+        .dash-source-panel {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem;
+            background: #f9fafb;
+        }
+        .dash-source-panel-title {
+            font-size: 0.8rem;
+            color: #4b5563;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
         .dash-source-tabs { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
         .dash-tab {
             display: inline-block;
@@ -40,11 +55,22 @@
         <h2>{{ $sourceLabel }} (PT Boulder API)</h2>
 
         <div class="dash-toolbar">
-            <div class="dash-source-tabs">
-                <a href="{{ route('dashboard', ['source' => 'provider_revenue', 'per_page' => $perPage]) }}" class="dash-tab {{ $source === 'provider_revenue' ? 'active' : '' }}">Provider Revenue</a>
-                <a href="{{ route('dashboard', ['source' => 'general_visit', 'per_page' => $perPage]) }}" class="dash-tab {{ $source === 'general_visit' ? 'active' : '' }}">General Visit</a>
-                <a href="{{ route('dashboard', ['source' => 'demographics', 'per_page' => $perPage]) }}" class="dash-tab {{ $source === 'demographics' ? 'active' : '' }}">Demographics</a>
-                <a href="{{ route('dashboard', ['source' => 'patient_report', 'per_page' => $perPage]) }}" class="dash-tab {{ $source === 'patient_report' ? 'active' : '' }}">Patient Report</a>
+            <div class="dash-source-panels">
+                @foreach($sourcePanels as $panel)
+                    <div class="dash-source-panel">
+                        <div class="dash-source-panel-title">{{ $panel['label'] }}</div>
+                        <div class="dash-source-tabs">
+                            @foreach($panel['sources'] as $panelSource => $panelSourceConfig)
+                                <a
+                                    href="{{ route('dashboard', ['source' => $panelSource, 'per_page' => $perPage]) }}"
+                                    class="dash-tab {{ $source === $panelSource ? 'active' : '' }}"
+                                >
+                                    {{ $panelSourceConfig['label'] }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
             <div class="dash-actions">

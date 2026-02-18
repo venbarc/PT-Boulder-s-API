@@ -500,6 +500,22 @@ class PtEverywhereService
     }
 
     /**
+     * Fetch therapist list.
+     */
+    public function getTherapists(array $params = []): array
+    {
+        return $this->get('/masterdata/therapists', $params);
+    }
+
+    /**
+     * Fetch clinic user list.
+     */
+    public function getClinicUsers(array $params = []): array
+    {
+        return $this->get('/masterdata/clinic-users', $params);
+    }
+
+    /**
      * Generic paginated fetcher -- pulls all pages for an endpoint.
      */
     public function getAllPaginated(string $endpoint, array $params = [], string $dataKey = 'data'): array
