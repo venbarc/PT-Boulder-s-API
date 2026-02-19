@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PteDemographic;
 use App\Models\PteGeneralVisit;
 use App\Models\PteLocation;
 use App\Models\PteMasterPatient;
 use App\Models\PteMasterUser;
 use App\Models\PtePatientReport;
 use App\Models\PteProviderRevenue;
+use App\Models\PtePullHistory;
 use App\Models\PteService;
 use App\Models\PteTherapist;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
@@ -76,6 +77,23 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function pullHistory(Request $request)
+    {
+        $perPage = (int) $request->query('per_page', 50);
+        if (! in_array($perPage, [25, 50, 100], true)) {
+            $perPage = 50;
+        }
+
+        $pullHistories = Schema::hasTable('pte_pull_histories')
+            ? PtePullHistory::query()->orderByDesc('id')->paginate($perPage)->withQueryString()
+            : collect();
+
+        return view('pull-history', [
+            'pullHistories' => $pullHistories,
+            'perPage' => $perPage,
+        ]);
+    }
+
     /**
      * @return array<string, array{
      *     model: class-string,
@@ -106,15 +124,6 @@ class DashboardController extends Controller
                 'export_route' => 'export.general_visit',
                 'sync_command' => 'php artisan pte:sync-general-visit --from=2024-01-01 --to=2025-12-31',
                 'order_column' => 'date_of_service',
-                'panel' => 'report',
-            ],
-            'demographics' => [
-                'model' => PteDemographic::class,
-                'columns' => PteDemographic::EXPORT_COLUMNS,
-                'label' => 'Demographics',
-                'export_route' => 'export.demographics',
-                'sync_command' => 'php artisan pte:sync-demographics --from-year=2024 --to-year=2025',
-                'order_column' => 'year_of_birth',
                 'panel' => 'report',
             ],
             'patient_report' => [

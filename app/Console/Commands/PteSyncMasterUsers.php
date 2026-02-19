@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\PteMasterUser;
+use App\Services\PtePullHistoryLogger;
 use App\Services\PtEverywhereService;
 use Illuminate\Console\Command;
 
@@ -10,23 +11,47 @@ class PteSyncMasterUsers extends Command
 {
     protected $signature = 'pte:sync-master-users
                             {--limit= : Limit number of records to fetch}
-                            {--page-size=100 : Number of rows per API page}';
+                            {--page-size=100 : Number of rows per API page}
+                            {--triggered-by=manual : Trigger source (manual or scheduler)}';
 
     protected $description = 'Pull clinic user master data from PtEverywhere API and store locally';
 
-    public function handle(PtEverywhereService $api): int
+    public function handle(PtEverywhereService $api, PtePullHistoryLogger $historyLogger): int
     {
         $this->info('Fetching master users from PtEverywhere...');
+        $history = null;
 
         try {
             $limit = $this->parseLimitOption();
             $pageSize = $this->parsePageSizeOption();
+            $triggeredBy = (string) ($this->option('triggered-by') ?: 'manual');
+
+            $history = $historyLogger->start($this->getName() ?? 'pte:sync-master-users', [
+                'source_key' => 'master_users',
+                'triggered_by' => $triggeredBy,
+                'options' => [
+                    'limit' => $limit,
+                    'page_size' => $pageSize,
+                ],
+            ]);
+
             [$fetched, $created, $updated] = $this->syncUsers($api, $pageSize, $limit);
 
             $this->info("Done! Fetched: {$fetched}, Created: {$created}, Updated: {$updated}");
+            if ($history !== null) {
+                $historyLogger->finish($history, [
+                    'fetched' => $fetched,
+                    'created' => $created,
+                    'updated' => $updated,
+                    'status' => 'success',
+                ]);
+            }
 
             return self::SUCCESS;
         } catch (\Throwable $e) {
+            if ($history !== null) {
+                $historyLogger->finish($history, ['status' => 'failed'], $e);
+            }
             $this->error('Failed: '.$e->getMessage());
 
             return self::FAILURE;

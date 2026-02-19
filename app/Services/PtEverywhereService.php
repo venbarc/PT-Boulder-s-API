@@ -374,34 +374,6 @@ class PtEverywhereService
     }
 
     /**
-     * Fetch demographics report rows.
-     */
-    public function getDemographics(array $params = []): array
-    {
-        $fromYear = (int) ($params['fromYear'] ?? $params['from_year'] ?? now()->year);
-        $toYear = (int) ($params['toYear'] ?? $params['to_year'] ?? now()->year);
-        $page = (int) ($params['page'] ?? 1);
-        $size = (int) ($params['size'] ?? $params['per_page'] ?? 100);
-
-        return $this->post('/report/demographics', [
-            'listMonth' => $params['listMonth'] ?? [],
-            'listInsurance' => $params['listInsurance'] ?? [],
-            'fromYear' => $fromYear,
-            'toYear' => $toYear,
-            'zipCode' => $params['zipCode'] ?? $params['zip_code'] ?? '',
-            'searchStr' => $params['searchStr'] ?? '',
-            'sorting' => [
-                'sortBy' => $params['sortBy'] ?? '',
-                'sortType' => $params['sortType'] ?? 'asc',
-            ],
-            'paging' => [
-                'page' => $page,
-                'pageSize' => $size,
-            ],
-        ]);
-    }
-
-    /**
      * Fetch patient report rows.
      */
     public function getPatientReport(array $params = []): array

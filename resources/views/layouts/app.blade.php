@@ -57,13 +57,13 @@
     <nav class="navbar">
         <h1>PT Boulder</h1>
         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
+        <a href="{{ route('pull-history') }}" class="{{ request()->routeIs('pull-history') ? 'active' : '' }}">Pull History</a>
         <div class="nav-spacer"></div>
         <select class="nav-export-select" onchange="if(this.value){ window.location=this.value; this.selectedIndex=0; }">
             <option value="">Download CSV...</option>
             <optgroup label="Report APIs">
                 <option value="{{ route('export.provider_revenue') }}">Provider Revenue CSV</option>
                 <option value="{{ route('export.general_visit') }}">General Visit CSV</option>
-                <option value="{{ route('export.demographics') }}">Demographics CSV</option>
                 <option value="{{ route('export.patient_report') }}">Patient Report CSV</option>
             </optgroup>
             <optgroup label="Master Data APIs">

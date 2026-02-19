@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\PteGeneralVisit;
+use App\Services\PtePullHistoryLogger;
 use App\Services\PtEverywhereService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -13,18 +14,32 @@ class PteSyncGeneralVisit extends Command
                             {--limit= : Limit number of records to fetch}
                             {--from= : Start date (Y-m-d)}
                             {--to= : End date (Y-m-d)}
-                            {--chunk-days=90 : Number of days per API chunk}';
+                            {--chunk-days=90 : Number of days per API chunk}
+                            {--triggered-by=manual : Trigger source (manual or scheduler)}';
 
     protected $description = 'Pull general visit report from PtEverywhere API and store locally';
 
-    public function handle(PtEverywhereService $api): int
+    public function handle(PtEverywhereService $api, PtePullHistoryLogger $historyLogger): int
     {
         $this->info('Fetching general visit data from PtEverywhere...');
+        $history = null;
 
         try {
             [$from, $to] = $this->resolveDateRange();
             $limit = $this->parseLimitOption();
             $chunkDays = $this->parseChunkDays();
+            $triggeredBy = (string) ($this->option('triggered-by') ?: 'manual');
+
+            $history = $historyLogger->start($this->getName() ?? 'pte:sync-general-visit', [
+                'source_key' => 'general_visit',
+                'triggered_by' => $triggeredBy,
+                'from_date' => $from,
+                'to_date' => $to,
+                'options' => [
+                    'limit' => $limit,
+                    'chunk_days' => $chunkDays,
+                ],
+            ]);
 
             [$fetched, $created, $updated, $chunksProcessed, $failedChunks] = $this->syncGeneralVisitByChunk(
                 $api,
@@ -38,6 +53,17 @@ class PteSyncGeneralVisit extends Command
                 "Done! Chunks: {$chunksProcessed}, Fetched: {$fetched}, Created: {$created}, Updated: {$updated}"
             );
 
+            $status = $failedChunks > 0 ? 'partial' : 'success';
+            if ($history !== null) {
+                $historyLogger->finish($history, [
+                    'fetched' => $fetched,
+                    'created' => $created,
+                    'updated' => $updated,
+                    'failed_chunks' => $failedChunks,
+                    'status' => $status,
+                ]);
+            }
+
             if ($failedChunks > 0) {
                 $this->warn("Completed with {$failedChunks} failed chunk(s). Re-run the failed date range(s).");
 
@@ -46,6 +72,9 @@ class PteSyncGeneralVisit extends Command
 
             return self::SUCCESS;
         } catch (\Throwable $e) {
+            if ($history !== null) {
+                $historyLogger->finish($history, ['status' => 'failed'], $e);
+            }
             $this->error('Failed: '.$e->getMessage());
 
             return self::FAILURE;
