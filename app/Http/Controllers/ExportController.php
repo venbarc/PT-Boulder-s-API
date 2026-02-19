@@ -3,7 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\PteGeneralVisit;
+use App\Models\PteLocation;
+use App\Models\PteMasterPatient;
+use App\Models\PteMasterUser;
+use App\Models\PtePatientReport;
 use App\Models\PteProviderRevenue;
+use App\Models\PteService;
+use App\Models\PteTherapist;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportController extends Controller
@@ -23,6 +29,60 @@ class ExportController extends Controller
             PteGeneralVisit::class,
             PteGeneralVisit::EXPORT_COLUMNS,
             'pt_boulder_general_visit_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportPatientReportCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PtePatientReport::class,
+            PtePatientReport::EXPORT_COLUMNS,
+            'pt_boulder_patient_report_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportTherapistsCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PteTherapist::class,
+            PteTherapist::EXPORT_COLUMNS,
+            'pt_boulder_therapists_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportLocationsCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PteLocation::class,
+            PteLocation::EXPORT_COLUMNS,
+            'pt_boulder_locations_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportServicesCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PteService::class,
+            PteService::EXPORT_COLUMNS,
+            'pt_boulder_services_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportMasterPatientsCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PteMasterPatient::class,
+            PteMasterPatient::EXPORT_COLUMNS,
+            'pt_boulder_master_patients_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportMasterUsersCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PteMasterUser::class,
+            PteMasterUser::EXPORT_COLUMNS,
+            'pt_boulder_master_users_'.now()->format('Ymd_His').'.csv'
         );
     }
 
@@ -52,6 +112,12 @@ class ExportController extends Controller
                                 $line[] = $column === 'date_of_service'
                                     ? $value->format('Y-m-d')
                                     : $value->format('Y-m-d H:i:s');
+
+                                continue;
+                            }
+
+                            if (is_array($value)) {
+                                $line[] = json_encode($value, JSON_UNESCAPED_SLASHES) ?: '';
 
                                 continue;
                             }

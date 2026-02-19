@@ -2,26 +2,26 @@
 
 namespace App\Console\Commands;
 
-use App\Models\PteGeneralVisit;
+use App\Models\PtePatientReport;
 use App\Services\PtePullHistoryLogger;
 use App\Services\PtEverywhereService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
-class PteSyncGeneralVisit extends Command
+class PteSyncPatientReport extends Command
 {
-    protected $signature = 'pte:sync-general-visit
+    protected $signature = 'pte:sync-patient-report
                             {--limit= : Limit number of records to fetch}
                             {--from= : Start date (Y-m-d)}
                             {--to= : End date (Y-m-d)}
                             {--chunk-days=90 : Number of days per API chunk}
                             {--triggered-by=manual : Trigger source (manual or scheduler)}';
 
-    protected $description = 'Pull general visit report from PtEverywhere API and store locally';
+    protected $description = 'Pull patient report from PtEverywhere API and store locally';
 
     public function handle(PtEverywhereService $api, PtePullHistoryLogger $historyLogger): int
     {
-        $this->info('Fetching general visit data from PtEverywhere...');
+        $this->info('Fetching patient report from PtEverywhere...');
         $history = null;
 
         try {
@@ -30,8 +30,8 @@ class PteSyncGeneralVisit extends Command
             $chunkDays = $this->parseChunkDays();
             $triggeredBy = (string) ($this->option('triggered-by') ?: 'manual');
 
-            $history = $historyLogger->start($this->getName() ?? 'pte:sync-general-visit', [
-                'source_key' => 'general_visit',
+            $history = $historyLogger->start($this->getName() ?? 'pte:sync-patient-report', [
+                'source_key' => 'patient_report',
                 'triggered_by' => $triggeredBy,
                 'from_date' => $from,
                 'to_date' => $to,
@@ -41,7 +41,7 @@ class PteSyncGeneralVisit extends Command
                 ],
             ]);
 
-            [$fetched, $created, $updated, $chunksProcessed, $failedChunks] = $this->syncGeneralVisitByChunk(
+            [$fetched, $created, $updated, $chunksProcessed, $failedChunks] = $this->syncPatientReportByChunk(
                 $api,
                 $from,
                 $to,
@@ -141,11 +141,11 @@ class PteSyncGeneralVisit extends Command
     }
 
     /**
-     * Fetch and save general-visit rows chunk-by-chunk.
+     * Fetch and save patient report rows chunk-by-chunk.
      *
      * @return array{0:int,1:int,2:int,3:int,4:int}
      */
-    private function syncGeneralVisitByChunk(
+    private function syncPatientReportByChunk(
         PtEverywhereService $api,
         string $from,
         string $to,
@@ -179,18 +179,18 @@ class PteSyncGeneralVisit extends Command
 
             try {
                 do {
-                    $response = $api->getGeneralVisit([
+                    $response = $api->getPatientReport([
                         'from' => $chunkStart->toDateString(),
                         'to' => $chunkEnd->toDateString(),
                         'page' => $page,
                         'size' => 100,
+                        'sortType' => 'desc',
                     ]);
 
                     $docs = $response['docs'] ?? [];
                     if (! is_array($docs)) {
                         break;
                     }
-                    $summary = is_array($response['summary'] ?? null) ? $response['summary'] : [];
 
                     if ($limit !== null) {
                         $remaining = $limit - $fetched;
@@ -210,86 +210,76 @@ class PteSyncGeneralVisit extends Command
                             continue;
                         }
 
-                        $patient = is_array($row['patient'] ?? null) ? $row['patient'] : [];
-                        $service = is_array($row['service'] ?? null) ? $row['service'] : [];
-                        $provider = is_array($row['provider'] ?? null) ? $row['provider'] : [];
-                        $location = is_array($row['location'] ?? null) ? $row['location'] : [];
-                        $invoice = is_array($row['invoice'] ?? null) ? $row['invoice'] : [];
-                        $treatmentNote = is_array($row['treatmentNote'] ?? null) ? $row['treatmentNote'] : [];
+                        $firstAppointment = is_array($row['firstAppointment'] ?? null) ? $row['firstAppointment'] : [];
+                        $lastAppointment = is_array($row['lastAppointment'] ?? null) ? $row['lastAppointment'] : [];
+                        $nextAppointment = is_array($row['nextAppointment'] ?? null) ? $row['nextAppointment'] : [];
+                        $lastTherapist = is_array($row['lastTherapist'] ?? null) ? $row['lastTherapist'] : [];
+                        $dependent = is_array($row['dependentOf'] ?? null) ? $row['dependentOf'] : [];
 
-                        $record = PteGeneralVisit::updateOrCreate(
+                        $record = PtePatientReport::updateOrCreate(
                             ['row_key' => $rowKey],
                             [
-                                'pte_visit_id' => $this->toStringOrNull($row['_id'] ?? null),
-                                'pte_patient_id' => $this->toStringOrNull(
-                                    $patient['_id'] ?? $row['patientId'] ?? $row['clientId'] ?? null
+                                'pte_patient_id' => $this->toStringOrNull($row['patientId'] ?? null),
+                                'patient_name' => $this->toStringOrNull($row['patientName'] ?? null),
+                                'email' => $this->toStringOrNull($row['email'] ?? null),
+                                'phone' => $this->toStringOrNull($row['phone'] ?? null),
+                                'registration_date_str' => $this->toStringOrNull($row['registrationDateStr'] ?? null),
+                                'registration_by' => $this->toStringOrNull($row['registrationBy'] ?? null),
+                                'first_login_date_str' => $this->toStringOrNull($row['firstLoginDateStr'] ?? null),
+                                'last_login_date_str' => $this->toStringOrNull($row['lastLoginDateStr'] ?? null),
+                                'total_last_logins' => $this->toInteger($row['totalLastLogins'] ?? null),
+                                'first_appointment_id' => $this->toStringOrNull($firstAppointment['_id'] ?? null),
+                                'first_appointment_start_date' => $this->toStringOrNull(
+                                    $firstAppointment['startDate'] ?? null
                                 ),
-                                'patient_full_name' => $this->toStringOrNull($patient['fullName'] ?? null),
-                                'patient_first_name' => $this->toStringOrNull($patient['firstName'] ?? null),
-                                'patient_last_name' => $this->toStringOrNull($patient['lastName'] ?? null),
-                                'patient_email' => $this->toStringOrNull($patient['email'] ?? null),
-                                'patient_code' => $this->toStringOrNull($patient['patientCode'] ?? null),
-                                'patient_total_appointment_visit' => $this->toInteger(
-                                    $patient['totalAppointmentVisit'] ?? null
+                                'last_appointment_id' => $this->toStringOrNull($lastAppointment['_id'] ?? null),
+                                'last_appointment_start_date' => $this->toStringOrNull(
+                                    $lastAppointment['startDate'] ?? null
                                 ),
-                                'service_name' => $this->toStringOrNull(
-                                    $service['name'] ?? $row['serviceName'] ?? null
+                                'next_appointment_id' => $this->toStringOrNull($nextAppointment['_id'] ?? null),
+                                'next_appointment_start_date' => $this->toStringOrNull(
+                                    $nextAppointment['startDate'] ?? null
                                 ),
-                                'service_id' => $this->toStringOrNull($service['_id'] ?? null),
-                                'provider_name' => $this->toStringOrNull(
-                                    $provider['name'] ?? $row['providerName'] ?? null
+                                'last_therapist_id' => $this->toStringOrNull($lastTherapist['_id'] ?? null),
+                                'last_therapist_name' => $this->toStringOrNull($lastTherapist['name'] ?? null),
+                                'last_therapist_email' => $this->toStringOrNull($lastTherapist['email'] ?? null),
+                                'package_membership' => is_array($row['packageMembership'] ?? null)
+                                    ? $row['packageMembership']
+                                    : null,
+                                'first_appointment_location' => $this->toStringOrNull(
+                                    $row['firstAppointmentLocation'] ?? null
                                 ),
-                                'provider_id' => $this->toStringOrNull($provider['_id'] ?? null),
-                                'location_name' => $this->toStringOrNull(
-                                    $location['name'] ?? $row['locationName'] ?? null
+                                'first_seen_by' => $this->toStringOrNull($row['firstSeenBy'] ?? null),
+                                'last_seen_by' => $this->toStringOrNull($row['lastSeenBy'] ?? null),
+                                'referred_by_name' => $this->toStringOrNull($row['referredByName'] ?? null),
+                                'payers_name' => $this->toStringOrNull($row['payersName'] ?? null),
+                                'total_revenue' => $this->toDecimal($row['totalRevenue'] ?? null),
+                                'total_collected' => $this->toDecimal($row['totalCollected'] ?? null),
+                                'status' => $this->toStringOrNull($row['status'] ?? null),
+                                'dependent_of_id' => $this->toStringOrNull($dependent['_id'] ?? null),
+                                'dependent_of_first_name' => $this->toStringOrNull(
+                                    $dependent['firstName']
+                                    ?? $dependent['FirstName']
+                                    ?? null
                                 ),
-                                'location_id' => $this->toStringOrNull($location['_id'] ?? null),
-                                'date_of_service' => $row['dateOfService'] ?? null,
-                                'appointment_status' => $this->toStringOrNull(
-                                    $row['appointmentStatus'] ?? $row['status'] ?? null
+                                'dependent_of_last_name' => $this->toStringOrNull(
+                                    $dependent['lastName']
+                                    ?? $dependent['LastName']
+                                    ?? $dependent['LastName ']
+                                    ?? null
                                 ),
-                                'units' => $this->toDecimal($row['units'] ?? null),
-                                'charges' => $this->toDecimal($row['charges'] ?? null),
-                                'payments' => $this->toDecimal($row['payments'] ?? null),
-                                'invoice_number' => $this->toStringOrNull(
-                                    $invoice['invoiceNo'] ?? $invoice['packageInvoiceNumber'] ?? null
+                                'dependent_of_middle_name' => $this->toStringOrNull(
+                                    $dependent['middleName']
+                                    ?? $dependent['MiddleName']
+                                    ?? null
                                 ),
-                                'invoice_status' => $this->toStringOrNull(
-                                    $invoice['invoiceStatus'] ?? $row['invoiceStatus'] ?? null
+                                'dependent_of_email' => $this->toStringOrNull(
+                                    $dependent['email']
+                                    ?? $dependent['Email']
+                                    ?? null
                                 ),
-                                'current_responsibility' => $this->toStringOrNull(
-                                    $invoice['currentResponsibility'] ?? null
-                                ),
-                                'package_invoice_number' => $this->toStringOrNull(
-                                    $invoice['packageInvoiceNumber'] ?? null
-                                ),
-                                'package_invoice_name' => $this->toStringOrNull(
-                                    $invoice['packageInvoiceName'] ?? null
-                                ),
-                                'claim_created_info' => $this->toStringOrNull($row['claimCreatedInfo'] ?? null),
-                                'created_by' => $this->toStringOrNull($row['createdBy'] ?? null),
-                                'reason' => $this->toStringOrNull($row['reason'] ?? null),
-                                'last_update_by' => $this->toStringOrNull($row['lastUpdateBy'] ?? null),
-                                'last_update_date' => $row['lastUpdateDate'] ?? null,
-                                'cancellation_notice' => $this->toStringOrNull($row['cancellationNotice'] ?? null),
-                                'treatment_note_id' => $this->toStringOrNull($treatmentNote['_id'] ?? null),
-                                'treatment_note_number' => $this->toStringOrNull(
-                                    $treatmentNote['treatmentNoteNo'] ?? null
-                                ),
-                                'summary_total_appointments' => $this->toInteger(
-                                    $summary['totalAppointments'] ?? null
-                                ),
-                                'summary_total_charges' => $this->toDecimal($summary['totalCharges'] ?? null),
-                                'summary_total_payments' => $this->toDecimal($summary['totalPayments'] ?? null),
-                                'summary_total_units' => $this->toDecimal($summary['totalUnits'] ?? null),
-                                'summary_total_patients' => $this->toInteger($summary['totalPatients'] ?? null),
-                                'summary_average_charges' => $this->toDecimal(
-                                    $summary['averageCharges'] ?? null
-                                ),
-                                'summary_average_payments' => $this->toDecimal(
-                                    $summary['averagePayments'] ?? null
-                                ),
-                                'summary_average_units' => $this->toDecimal($summary['averageUnits'] ?? null),
+                                'total_appointment_visit' => $this->toInteger($row['totalAppointmentVisit'] ?? null),
+                                'total_session_completed' => $this->toInteger($row['totalSessionCompleted'] ?? null),
                                 'raw_data' => $row,
                             ]
                         );
@@ -333,19 +323,15 @@ class PteSyncGeneralVisit extends Command
      */
     private function buildRowKey(array $row): ?string
     {
-        $visitId = trim((string) ($row['_id'] ?? ''));
-        if ($visitId !== '') {
-            return hash('sha256', $visitId);
+        $patientId = trim((string) ($row['patientId'] ?? ''));
+        if ($patientId !== '') {
+            return hash('sha256', $patientId);
         }
 
-        $patient = is_array($row['patient'] ?? null) ? $row['patient'] : [];
-        $service = is_array($row['service'] ?? null) ? $row['service'] : [];
-
         $parts = [
-            trim((string) ($patient['_id'] ?? $row['patientId'] ?? '')),
-            trim((string) ($row['dateOfService'] ?? '')),
-            trim((string) ($row['startDateTime'] ?? '')),
-            trim((string) ($service['_id'] ?? $service['name'] ?? $row['serviceName'] ?? '')),
+            trim((string) ($row['email'] ?? '')),
+            trim((string) ($row['patientName'] ?? '')),
+            trim((string) ($row['registrationDateStr'] ?? '')),
         ];
 
         if (implode('', $parts) === '') {
@@ -353,26 +339,6 @@ class PteSyncGeneralVisit extends Command
         }
 
         return hash('sha256', implode('|', $parts));
-    }
-
-    private function toDecimal(mixed $value): ?float
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        if (is_numeric($value)) {
-            return (float) $value;
-        }
-
-        if (is_string($value)) {
-            $normalized = preg_replace('/[^0-9.\-]/', '', $value);
-            if ($normalized !== null && $normalized !== '' && is_numeric($normalized)) {
-                return (float) $normalized;
-            }
-        }
-
-        return null;
     }
 
     private function toInteger(mixed $value): ?int
@@ -389,6 +355,26 @@ class PteSyncGeneralVisit extends Command
             $normalized = preg_replace('/[^0-9\-]/', '', $value);
             if ($normalized !== null && $normalized !== '' && is_numeric($normalized)) {
                 return (int) $normalized;
+            }
+        }
+
+        return null;
+    }
+
+    private function toDecimal(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        if (is_string($value)) {
+            $normalized = preg_replace('/[^0-9.\-]/', '', $value);
+            if ($normalized !== null && $normalized !== '' && is_numeric($normalized)) {
+                return (float) $normalized;
             }
         }
 

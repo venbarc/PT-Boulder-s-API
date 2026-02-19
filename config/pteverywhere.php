@@ -28,4 +28,10 @@ return [
     // Empty string disables inherited HTTP(S)_PROXY env vars.
     'proxy' => env('PTE_API_PROXY', ''),
 
+    // Retry strategy for transient upstream failures (timeouts, 5xx, 429).
+    // Attempts are total tries per request (including the first call).
+    'request_retries' => env('PTE_API_REQUEST_RETRIES', 4),
+    'retry_delay_ms' => env('PTE_API_RETRY_DELAY_MS', 1200),
+    'retry_max_delay_ms' => env('PTE_API_RETRY_MAX_DELAY_MS', 10000),
+
 ];

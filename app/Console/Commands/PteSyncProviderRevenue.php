@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\PteProviderRevenue;
+use App\Services\PtePullHistoryLogger;
 use App\Services\PtEverywhereService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -13,18 +14,32 @@ class PteSyncProviderRevenue extends Command
                             {--limit= : Limit number of records to fetch}
                             {--from= : Start date (Y-m-d)}
                             {--to= : End date (Y-m-d)}
-                            {--chunk-days=90 : Number of days per API chunk}';
+                            {--chunk-days=90 : Number of days per API chunk}
+                            {--triggered-by=manual : Trigger source (manual or scheduler)}';
 
     protected $description = 'Pull provider revenue report from PtEverywhere API and store locally';
 
-    public function handle(PtEverywhereService $api): int
+    public function handle(PtEverywhereService $api, PtePullHistoryLogger $historyLogger): int
     {
         $this->info('Fetching provider revenue from PtEverywhere...');
+        $history = null;
 
         try {
             [$from, $to] = $this->resolveDateRange();
             $limit = $this->parseLimitOption();
             $chunkDays = $this->parseChunkDays();
+            $triggeredBy = (string) ($this->option('triggered-by') ?: 'manual');
+
+            $history = $historyLogger->start($this->getName() ?? 'pte:sync-provider-revenue', [
+                'source_key' => 'provider_revenue',
+                'triggered_by' => $triggeredBy,
+                'from_date' => $from,
+                'to_date' => $to,
+                'options' => [
+                    'limit' => $limit,
+                    'chunk_days' => $chunkDays,
+                ],
+            ]);
 
             [$fetched, $created, $updated, $chunksProcessed, $failedChunks] = $this->syncProviderRevenueByChunk(
                 $api,
@@ -38,6 +53,17 @@ class PteSyncProviderRevenue extends Command
                 "Done! Chunks: {$chunksProcessed}, Fetched: {$fetched}, Created: {$created}, Updated: {$updated}"
             );
 
+            $status = $failedChunks > 0 ? 'partial' : 'success';
+            if ($history !== null) {
+                $historyLogger->finish($history, [
+                    'fetched' => $fetched,
+                    'created' => $created,
+                    'updated' => $updated,
+                    'failed_chunks' => $failedChunks,
+                    'status' => $status,
+                ]);
+            }
+
             if ($failedChunks > 0) {
                 $this->warn("Completed with {$failedChunks} failed chunk(s). Re-run the failed date range(s).");
 
@@ -46,6 +72,9 @@ class PteSyncProviderRevenue extends Command
 
             return self::SUCCESS;
         } catch (\Throwable $e) {
+            if ($history !== null) {
+                $historyLogger->finish($history, ['status' => 'failed'], $e);
+            }
             $this->error('Failed: '.$e->getMessage());
 
             return self::FAILURE;
@@ -128,14 +157,14 @@ class PteSyncProviderRevenue extends Command
         $updated = 0;
         $chunksProcessed = 0;
         $failedChunks = 0;
-        $start = Carbon::parse($from);
-        $end = Carbon::parse($to);
+        $fromDate = Carbon::parse($from);
+        $currentEnd = Carbon::parse($to);
 
-        while ($start->lte($end) && ($limit === null || $fetched < $limit)) {
-            $chunkStart = $start->copy();
-            $chunkEnd = $start->copy()->addDays($chunkDays - 1);
-            if ($chunkEnd->gt($end)) {
-                $chunkEnd = $end->copy();
+        while ($currentEnd->gte($fromDate) && ($limit === null || $fetched < $limit)) {
+            $chunkEnd = $currentEnd->copy();
+            $chunkStart = $currentEnd->copy()->subDays($chunkDays - 1);
+            if ($chunkStart->lt($fromDate)) {
+                $chunkStart = $fromDate->copy();
             }
 
             $chunksProcessed++;
@@ -155,6 +184,7 @@ class PteSyncProviderRevenue extends Command
                         'to' => $chunkEnd->toDateString(),
                         'page' => $page,
                         'size' => 100,
+                        'sortType' => 'desc',
                     ]);
 
                     $docs = $response['docs'] ?? [];
@@ -226,7 +256,7 @@ class PteSyncProviderRevenue extends Command
 
             $fetchBar->finish();
             $this->newLine();
-            $start = $chunkEnd->copy()->addDay();
+            $currentEnd = $chunkStart->copy()->subDay();
         }
 
         return [$fetched, $created, $updated, $chunksProcessed, $failedChunks];

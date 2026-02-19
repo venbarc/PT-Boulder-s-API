@@ -22,6 +22,16 @@
             background: rgba(255,255,255,0.08);
         }
         .nav-btn:hover { background: rgba(255,255,255,0.18); }
+        .nav-export-select {
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 6px;
+            padding: 0.38rem 0.55rem;
+            font-size: 0.85rem;
+            color: #1f2937;
+            background: white;
+            min-width: 250px;
+        }
+        .nav-export-select:focus { outline: 2px solid rgba(255,255,255,0.45); outline-offset: 1px; }
         .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: white; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -47,9 +57,23 @@
     <nav class="navbar">
         <h1>PT Boulder</h1>
         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
+        <a href="{{ route('pull-history') }}" class="{{ request()->routeIs('pull-history') ? 'active' : '' }}">Pull History</a>
         <div class="nav-spacer"></div>
-        <a href="{{ route('export.provider_revenue') }}" class="nav-btn">Export Provider Revenue CSV</a>
-        <a href="{{ route('export.general_visit') }}" class="nav-btn">Export General Visit CSV</a>
+        <select class="nav-export-select" onchange="if(this.value){ window.location=this.value; this.selectedIndex=0; }">
+            <option value="">Download CSV...</option>
+            <optgroup label="Report APIs">
+                <option value="{{ route('export.provider_revenue') }}">Provider Revenue CSV</option>
+                <option value="{{ route('export.general_visit') }}">General Visit CSV</option>
+                <option value="{{ route('export.patient_report') }}">Patient Report CSV</option>
+            </optgroup>
+            <optgroup label="Master Data APIs">
+                <option value="{{ route('export.therapists') }}">Therapists CSV</option>
+                <option value="{{ route('export.locations') }}">Locations CSV</option>
+                <option value="{{ route('export.services') }}">Services CSV</option>
+                <option value="{{ route('export.master_patients') }}">Patients CSV</option>
+                <option value="{{ route('export.master_users') }}">Users CSV</option>
+            </optgroup>
+        </select>
     </nav>
 
     <div class="container">
