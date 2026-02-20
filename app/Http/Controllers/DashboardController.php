@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PteDemographic;
 use App\Models\PteGeneralVisit;
 use App\Models\PteLocation;
 use App\Models\PteMasterPatient;
@@ -133,6 +134,15 @@ class DashboardController extends Controller
                 'export_route' => 'export.patient_report',
                 'sync_command' => 'php artisan pte:sync-patient-report --from=2024-01-01 --to=2025-12-31',
                 'order_column' => 'registration_date_str',
+                'panel' => 'report',
+            ],
+            'demographics' => [
+                'model' => PteDemographic::class,
+                'columns' => PteDemographic::EXPORT_COLUMNS,
+                'label' => 'Demographics',
+                'export_route' => 'export.demographics',
+                'sync_command' => 'php artisan pte:sync-demographics --from=2024-01-01 --to=2025-12-31',
+                'order_column' => 'year_of_birth',
                 'panel' => 'report',
             ],
             'therapists' => [

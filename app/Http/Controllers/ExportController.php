@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PteDemographic;
 use App\Models\PteGeneralVisit;
 use App\Models\PteLocation;
 use App\Models\PteMasterPatient;
@@ -38,6 +39,15 @@ class ExportController extends Controller
             PtePatientReport::class,
             PtePatientReport::EXPORT_COLUMNS,
             'pt_boulder_patient_report_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportDemographicsCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PteDemographic::class,
+            PteDemographic::EXPORT_COLUMNS,
+            'pt_boulder_demographics_'.now()->format('Ymd_His').'.csv'
         );
     }
 

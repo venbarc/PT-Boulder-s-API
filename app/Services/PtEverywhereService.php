@@ -415,6 +415,43 @@ class PtEverywhereService
     }
 
     /**
+     * Fetch demographics report rows.
+     */
+    public function getDemographics(array $params = []): array
+    {
+        $from = $params['from'] ?? $params['start_date'] ?? now()->subDays(30)->toDateString();
+        $to = $params['to'] ?? $params['end_date'] ?? now()->toDateString();
+        $page = (int) ($params['page'] ?? 1);
+        $size = (int) ($params['size'] ?? $params['per_page'] ?? 100);
+
+        $payload = [
+            'createdDate' => [
+                'startDate' => $from,
+                'endDate' => $to,
+                'timeRange' => $params['timeRange'] ?? 'All',
+            ],
+            'locations' => $params['locations'] ?? [],
+            'createdBy' => $params['createdBy'] ?? [],
+            'monthOfBirth' => $params['monthOfBirth'] ?? [],
+            'yearOfBirth' => $params['yearOfBirth'] ?? [],
+            'state' => $params['state'] ?? [],
+            'city' => $params['city'] ?? [],
+            'zipCode' => $params['zipCode'] ?? [],
+            'searchStr' => $params['searchStr'] ?? '',
+            'sorting' => [
+                'sortBy' => $params['sortBy'] ?? '',
+                'sortType' => $params['sortType'] ?? 'asc',
+            ],
+            'paging' => [
+                'page' => $page,
+                'pageSize' => $size,
+            ],
+        ];
+
+        return $this->post('/report/demographics', $payload);
+    }
+
+    /**
      * Fetch provider revenue report rows (includes CPT in payload).
      */
     public function getProviderRevenue(array $params = []): array

@@ -35,6 +35,10 @@ class PteSyncNightly extends Command
                 'name' => 'pte:sync-patient-report',
                 'options' => ['--from' => $from, '--to' => $to, '--triggered-by' => 'scheduler'],
             ],
+            [
+                'name' => 'pte:sync-demographics',
+                'options' => ['--from' => $from, '--to' => $to, '--triggered-by' => 'scheduler'],
+            ],
         ];
 
         if ($includeMasterdata) {

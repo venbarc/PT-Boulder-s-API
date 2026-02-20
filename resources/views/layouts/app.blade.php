@@ -65,6 +65,7 @@
                 <option value="{{ route('export.provider_revenue') }}">Provider Revenue CSV</option>
                 <option value="{{ route('export.general_visit') }}">General Visit CSV</option>
                 <option value="{{ route('export.patient_report') }}">Patient Report CSV</option>
+                <option value="{{ route('export.demographics') }}">Demographics CSV</option>
             </optgroup>
             <optgroup label="Master Data APIs">
                 <option value="{{ route('export.therapists') }}">Therapists CSV</option>
