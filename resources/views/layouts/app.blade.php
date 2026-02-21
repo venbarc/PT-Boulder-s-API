@@ -61,6 +61,9 @@
         <div class="nav-spacer"></div>
         <select class="nav-export-select" onchange="if(this.value){ window.location=this.value; this.selectedIndex=0; }">
             <option value="">Download CSV...</option>
+            <optgroup label="Appointment APIs">
+                <option value="{{ route('export.available_blocks') }}">Available Blocks CSV</option>
+            </optgroup>
             <optgroup label="Report APIs">
                 <option value="{{ route('export.provider_revenue') }}">Provider Revenue CSV</option>
                 <option value="{{ route('export.general_visit') }}">General Visit CSV</option>

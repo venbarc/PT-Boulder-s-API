@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PteAvailableBlock;
 use App\Models\PteDemographic;
 use App\Models\PteGeneralVisit;
 use App\Models\PteLocation;
@@ -48,6 +49,15 @@ class ExportController extends Controller
             PteDemographic::class,
             PteDemographic::EXPORT_COLUMNS,
             'pt_boulder_demographics_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    public function exportAvailableBlocksCsv(): StreamedResponse
+    {
+        return $this->streamModelCsv(
+            PteAvailableBlock::class,
+            PteAvailableBlock::EXPORT_COLUMNS,
+            'pt_boulder_available_blocks_'.now()->format('Ymd_His').'.csv'
         );
     }
 

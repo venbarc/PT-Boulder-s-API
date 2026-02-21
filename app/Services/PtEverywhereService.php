@@ -528,6 +528,26 @@ class PtEverywhereService
     }
 
     /**
+     * Fetch available appointment blocks for a therapist.
+     */
+    public function getAvailableBlocks(array $params = []): array
+    {
+        $startDate = $params['startDate'] ?? $params['from'] ?? now()->toDateString();
+        $endDate = $params['endDate'] ?? $params['to'] ?? now()->addDays(30)->toDateString();
+        $therapist = trim((string) ($params['therapist'] ?? ''));
+
+        if ($therapist === '') {
+            throw new \RuntimeException('The available-blocks endpoint requires a therapist ID.');
+        }
+
+        return $this->get('/appointment/available-blocks', [
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'therapist' => $therapist,
+        ]);
+    }
+
+    /**
      * Generic paginated fetcher -- pulls all pages for an endpoint.
      */
     public function getAllPaginated(string $endpoint, array $params = [], string $dataKey = 'data'): array

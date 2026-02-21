@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PteAvailableBlock;
 use App\Models\PteDemographic;
 use App\Models\PteGeneralVisit;
 use App\Models\PteLocation;
@@ -145,6 +146,15 @@ class DashboardController extends Controller
                 'order_column' => 'year_of_birth',
                 'panel' => 'report',
             ],
+            'available_blocks' => [
+                'model' => PteAvailableBlock::class,
+                'columns' => PteAvailableBlock::EXPORT_COLUMNS,
+                'label' => 'Available Blocks',
+                'export_route' => 'export.available_blocks',
+                'sync_command' => 'php artisan pte:sync-available-blocks --from=YYYY-MM-DD --to=YYYY-MM-DD --all-therapists=1',
+                'order_column' => 'start_datetime',
+                'panel' => 'appointment',
+            ],
             'therapists' => [
                 'model' => PteTherapist::class,
                 'columns' => PteTherapist::EXPORT_COLUMNS,
@@ -207,6 +217,7 @@ class DashboardController extends Controller
     private function buildSourcePanels(array $sources): array
     {
         $panelLabels = [
+            'appointment' => 'Appointment APIs',
             'report' => 'Report APIs',
             'masterdata' => 'Master Data APIs',
         ];
