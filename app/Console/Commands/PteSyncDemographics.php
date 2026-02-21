@@ -14,7 +14,8 @@ class PteSyncDemographics extends Command
                             {--limit= : Limit number of records to fetch}
                             {--from= : Start date (Y-m-d)}
                             {--to= : End date (Y-m-d)}
-                            {--chunk-days=90 : Number of days per API chunk}
+                            {--page-size=100 : Number of rows per API page}
+                            {--chunk-days= : Deprecated for demographics (ignored)}
                             {--triggered-by=manual : Trigger source (manual or scheduler)}';
 
     protected $description = 'Pull demographics report from PtEverywhere API and store locally';
@@ -27,7 +28,7 @@ class PteSyncDemographics extends Command
         try {
             [$from, $to] = $this->resolveDateRange();
             $limit = $this->parseLimitOption();
-            $chunkDays = $this->parseChunkDays();
+            $pageSize = $this->parsePageSizeOption();
             $triggeredBy = (string) ($this->option('triggered-by') ?: 'manual');
 
             $history = $historyLogger->start($this->getName() ?? 'pte:sync-demographics', [
@@ -37,35 +38,35 @@ class PteSyncDemographics extends Command
                 'to_date' => $to,
                 'options' => [
                     'limit' => $limit,
-                    'chunk_days' => $chunkDays,
+                    'page_size' => $pageSize,
                 ],
             ]);
 
-            [$fetched, $created, $updated, $chunksProcessed, $failedChunks] = $this->syncDemographicsByChunk(
+            [$fetched, $created, $updated, $windowsProcessed, $failedWindows] = $this->syncDemographicsByWindow(
                 $api,
                 $from,
                 $to,
-                $chunkDays,
+                $pageSize,
                 $limit
             );
 
             $this->info(
-                "Done! Chunks: {$chunksProcessed}, Fetched: {$fetched}, Created: {$created}, Updated: {$updated}"
+                "Done! Windows: {$windowsProcessed}, Fetched: {$fetched}, Created: {$created}, Updated: {$updated}"
             );
 
-            $status = $failedChunks > 0 ? 'partial' : 'success';
+            $status = $failedWindows > 0 ? 'partial' : 'success';
             if ($history !== null) {
                 $historyLogger->finish($history, [
                     'fetched' => $fetched,
                     'created' => $created,
                     'updated' => $updated,
-                    'failed_chunks' => $failedChunks,
+                    'failed_chunks' => $failedWindows,
                     'status' => $status,
                 ]);
             }
 
-            if ($failedChunks > 0) {
-                $this->warn("Completed with {$failedChunks} failed chunk(s). Re-run the failed date range(s).");
+            if ($failedWindows > 0) {
+                $this->warn("Completed with {$failedWindows} failed window(s). Re-run the failed date range(s).");
 
                 return self::FAILURE;
             }
@@ -86,7 +87,7 @@ class PteSyncDemographics extends Command
      */
     private function resolveDateRange(): array
     {
-        $from = $this->parseDateOption($this->option('from'), 'from') ?? Carbon::create(2024, 1, 1);
+        $from = $this->parseDateOption($this->option('from'), 'from') ?? Carbon::create(1970, 1, 1);
         $to = $this->parseDateOption($this->option('to'), 'to') ?? now();
 
         if ($from->gt($to)) {
@@ -130,60 +131,60 @@ class PteSyncDemographics extends Command
         return $parsed;
     }
 
-    private function parseChunkDays(): int
+    private function parsePageSizeOption(): int
     {
-        $chunkDays = (int) $this->option('chunk-days');
-        if ($chunkDays <= 0) {
-            throw new \RuntimeException('The --chunk-days option must be greater than 0.');
+        $pageSize = (int) $this->option('page-size');
+        if ($pageSize <= 0 || $pageSize > 500) {
+            throw new \RuntimeException('The --page-size option must be between 1 and 500.');
         }
 
-        return $chunkDays;
+        return $pageSize;
     }
 
     /**
-     * Fetch and save demographics rows chunk-by-chunk.
+     * Fetch and save demographics rows by year-month windows.
      *
      * @return array{0:int,1:int,2:int,3:int,4:int}
      */
-    private function syncDemographicsByChunk(
+    private function syncDemographicsByWindow(
         PtEverywhereService $api,
         string $from,
         string $to,
-        int $chunkDays,
+        int $pageSize,
         ?int $limit
     ): array {
         $fetched = 0;
         $created = 0;
         $updated = 0;
-        $chunksProcessed = 0;
-        $failedChunks = 0;
-        $fromDate = Carbon::parse($from);
-        $currentEnd = Carbon::parse($to);
+        $windowsProcessed = 0;
+        $failedWindows = 0;
+        $windows = $this->buildYearMonthWindows($from, $to);
 
-        while ($currentEnd->gte($fromDate) && ($limit === null || $fetched < $limit)) {
-            $chunkEnd = $currentEnd->copy();
-            $chunkStart = $currentEnd->copy()->subDays($chunkDays - 1);
-            if ($chunkStart->lt($fromDate)) {
-                $chunkStart = $fromDate->copy();
+        foreach ($windows as $window) {
+            if ($limit !== null && $fetched >= $limit) {
+                break;
             }
 
-            $chunksProcessed++;
-            $this->line("Chunk {$chunksProcessed}: {$chunkStart->toDateString()} to {$chunkEnd->toDateString()}");
+            $windowsProcessed++;
+            $windowLabel = "{$window['from_date']} to {$window['to_date']}";
+            $this->line("Window {$windowsProcessed}: {$windowLabel}");
 
             $page = 1;
-            $totalPages = 1;
+            $totalPages = 0;
+            $lastPageDigest = null;
             $fetchBar = $this->output->createProgressBar();
             $fetchBar->setFormat(' %current% pages fetched | %message%');
-            $fetchBar->setMessage("starting chunk {$chunksProcessed}");
+            $fetchBar->setMessage("starting window {$windowsProcessed}");
             $fetchBar->start();
 
             try {
                 do {
                     $response = $api->getDemographics([
-                        'from' => $chunkStart->toDateString(),
-                        'to' => $chunkEnd->toDateString(),
+                        'fromYear' => $window['from_year'],
+                        'toYear' => $window['to_year'],
+                        'listMonth' => $window['months'],
                         'page' => $page,
-                        'size' => 100,
+                        'size' => $pageSize,
                         'sortType' => 'desc',
                     ]);
 
@@ -215,7 +216,7 @@ class PteSyncDemographics extends Command
                         $record = PteDemographic::updateOrCreate(
                             ['row_key' => $rowKey],
                             [
-                                'pte_patient_id' => $this->toStringOrNull($row['patientId'] ?? null),
+                                'pte_patient_id' => $this->toStringOrNull($row['_id'] ?? $row['patientId'] ?? null),
                                 'first_name' => $this->toStringOrNull($row['firstName'] ?? null),
                                 'last_name' => $this->toStringOrNull($row['lastName'] ?? null),
                                 'email' => $this->toStringOrNull($row['email'] ?? null),
@@ -260,34 +261,128 @@ class PteSyncDemographics extends Command
                         $fetched++;
                     }
 
-                    $totalPages = (int) ($response['totalPages'] ?? $response['total_pages'] ?? 1);
-                    $totalPages = max($totalPages, 1);
+                    $totalPages = $this->resolveTotalPages($response, $pageSize);
+                    $totalPagesLabel = $totalPages > 0 ? (string) $totalPages : '?';
                     $fetchBar->advance();
                     $fetchBar->setMessage(
-                        "chunk {$chunksProcessed} page {$page}/{$totalPages}, got ".count($docs).", saved {$fetched}"
+                        "window {$windowsProcessed} page {$page}/{$totalPagesLabel}, got "
+                        .count($docs).", saved {$fetched}"
                     );
+
+                    if ($limit !== null && $fetched >= $limit) {
+                        break;
+                    }
+
+                    if ($totalPages === 0) {
+                        $currentDigest = hash('sha256', json_encode($docs) ?: '');
+                        if ($lastPageDigest !== null && $currentDigest === $lastPageDigest) {
+                            $this->newLine();
+                            $this->warn(
+                                'Pagination metadata is missing and repeated page payload detected. Stopping safely.'
+                            );
+
+                            break;
+                        }
+                        $lastPageDigest = $currentDigest;
+                    }
+
                     $page++;
                 } while (
                     count($docs) > 0
-                    && $page <= $totalPages
+                    && ($totalPages > 0 ? $page <= $totalPages : count($docs) >= $pageSize)
                     && ($limit === null || $fetched < $limit)
                 );
             } catch (\Throwable $e) {
-                $failedChunks++;
+                $failedWindows++;
                 $this->newLine();
                 $this->error(
-                    "Chunk {$chunksProcessed} failed at page {$page} "
-                    ."({$chunkStart->toDateString()} to {$chunkEnd->toDateString()}): "
+                    "Window {$windowsProcessed} failed at page {$page} "
+                    ."({$windowLabel}): "
                     .$e->getMessage()
                 );
             }
 
             $fetchBar->finish();
             $this->newLine();
-            $currentEnd = $chunkStart->copy()->subDay();
         }
 
-        return [$fetched, $created, $updated, $chunksProcessed, $failedChunks];
+        return [$fetched, $created, $updated, $windowsProcessed, $failedWindows];
+    }
+
+    /**
+     * @return array<int, array{
+     *     from_year:int,
+     *     to_year:int,
+     *     months: array<int, int>,
+     *     from_date: string,
+     *     to_date: string
+     * }>
+     */
+    private function buildYearMonthWindows(string $from, string $to): array
+    {
+        $fromDate = Carbon::parse($from);
+        $toDate = Carbon::parse($to);
+        $fromYear = (int) $fromDate->year;
+        $toYear = (int) $toDate->year;
+        $windows = [];
+
+        for ($year = $toYear; $year >= $fromYear; $year--) {
+            if ($year === $fromYear && $year === $toYear) {
+                $months = range((int) $fromDate->month, (int) $toDate->month);
+                $windowFromDate = $fromDate->toDateString();
+                $windowToDate = $toDate->toDateString();
+            } elseif ($year === $toYear) {
+                $months = range(1, (int) $toDate->month);
+                $windowFromDate = Carbon::create($year, 1, 1)->toDateString();
+                $windowToDate = $toDate->toDateString();
+            } elseif ($year === $fromYear) {
+                $months = range((int) $fromDate->month, 12);
+                $windowFromDate = $fromDate->toDateString();
+                $windowToDate = Carbon::create($year, 12, 31)->toDateString();
+            } else {
+                $months = range(1, 12);
+                $windowFromDate = Carbon::create($year, 1, 1)->toDateString();
+                $windowToDate = Carbon::create($year, 12, 31)->toDateString();
+            }
+
+            $windows[] = [
+                'from_year' => $year,
+                'to_year' => $year,
+                'months' => $months,
+                'from_date' => $windowFromDate,
+                'to_date' => $windowToDate,
+            ];
+        }
+
+        return $windows;
+    }
+
+    /**
+     * @param  array<string, mixed>  $response
+     */
+    private function resolveTotalPages(array $response, int $pageSize): int
+    {
+        $fromTotalPages = $response['totalPages']
+            ?? $response['total_pages']
+            ?? $response['meta']['totalPages']
+            ?? $response['meta']['last_page']
+            ?? null;
+
+        if (is_numeric($fromTotalPages) && (int) $fromTotalPages > 0) {
+            return (int) $fromTotalPages;
+        }
+
+        $fromTotal = $response['totalDocs']
+            ?? $response['total_docs']
+            ?? $response['total']
+            ?? $response['meta']['total']
+            ?? null;
+
+        if (is_numeric($fromTotal) && (int) $fromTotal > 0 && $pageSize > 0) {
+            return (int) ceil(((int) $fromTotal) / $pageSize);
+        }
+
+        return 0;
     }
 
     /**
@@ -295,7 +390,7 @@ class PteSyncDemographics extends Command
      */
     private function buildRowKey(array $row): ?string
     {
-        $patientId = trim((string) ($row['patientId'] ?? ''));
+        $patientId = trim((string) ($row['_id'] ?? $row['patientId'] ?? ''));
         if ($patientId !== '') {
             return hash('sha256', $patientId);
         }

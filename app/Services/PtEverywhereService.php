@@ -419,24 +419,27 @@ class PtEverywhereService
      */
     public function getDemographics(array $params = []): array
     {
-        $from = $params['from'] ?? $params['start_date'] ?? now()->subDays(30)->toDateString();
-        $to = $params['to'] ?? $params['end_date'] ?? now()->toDateString();
+        $fromYear = (int) ($params['fromYear'] ?? now()->subYear()->year);
+        $toYear = (int) ($params['toYear'] ?? now()->year);
+        $listMonth = $params['listMonth'] ?? [];
         $page = (int) ($params['page'] ?? 1);
         $size = (int) ($params['size'] ?? $params['per_page'] ?? 100);
 
+        if (! is_array($listMonth)) {
+            $listMonth = [];
+        }
+
+        $listMonth = array_values(array_filter(array_map(
+            static fn (mixed $month): int => (int) $month,
+            $listMonth
+        ), static fn (int $month): bool => $month >= 1 && $month <= 12));
+
         $payload = [
-            'createdDate' => [
-                'startDate' => $from,
-                'endDate' => $to,
-                'timeRange' => $params['timeRange'] ?? 'All',
-            ],
-            'locations' => $params['locations'] ?? [],
-            'createdBy' => $params['createdBy'] ?? [],
-            'monthOfBirth' => $params['monthOfBirth'] ?? [],
-            'yearOfBirth' => $params['yearOfBirth'] ?? [],
-            'state' => $params['state'] ?? [],
-            'city' => $params['city'] ?? [],
-            'zipCode' => $params['zipCode'] ?? [],
+            'listMonth' => $listMonth,
+            'listInsurance' => is_array($params['listInsurance'] ?? null) ? $params['listInsurance'] : [],
+            'fromYear' => $fromYear,
+            'toYear' => $toYear,
+            'zipCode' => (string) ($params['zipCode'] ?? ''),
             'searchStr' => $params['searchStr'] ?? '',
             'sorting' => [
                 'sortBy' => $params['sortBy'] ?? '',
