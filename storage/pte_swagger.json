@@ -1,0 +1,2701 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "PtEverywhere OpenAPI 0.8 BETA",
+    "description": "PtEverywhere OpenAPI 0.8 BETA",
+    "termsOfService": "https://www.pteverywhere.com/user-agreements",
+    "contact": {
+      "email": "Talk2PtE@pteverywhere.com"
+    },
+    "version": "0.8.68"
+  },
+  "servers": [
+    {
+      "url": "https://openapi.pteverywhere.com/api/v2",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "1. Auth",
+      "description": ""
+    },
+    {
+      "name": "4. Report",
+      "description": "APIs to retrieve your clinic reporting data"
+    },
+    {
+      "name": "3. Master Data",
+      "description": "APIs to retrieve your clinic master data"
+    },
+    {
+      "name": "2. Appointment",
+      "description": "APIs to retrieve your clinic reporting data"
+    },
+    {
+      "name": "5. Webhook",
+      "description": "Webhook to retrieve your clinic data"
+    }
+  ],
+  "paths": {
+    "/auth/confirm-password": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "Confirm password",
+        "description": "",
+        "operationId": "Confirm Password",
+        "requestBody": {
+          "description": "",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "default": "smstest0101@gmail.com"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "default": "123456Aa@"
+                  },
+                  "verificationCode": {
+                    "type": "string",
+                    "default": "abcdef"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string",
+                      "description": ""
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/token": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "Authenticate for authorized tokens",
+        "description": "Authenticate user credentials for authorized tokens",
+        "operationId": "AuthGetTokens",
+        "requestBody": {
+          "description": "",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "default": "openapi@pteverywhere.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "default": "Ii@123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string",
+                      "description": ""
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/renewtokens": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "Renew access tokens based on a valid refresh token",
+        "description": "Renew access tokens based on a valid refresh token",
+        "operationId": "AuthRenewTokens",
+        "requestBody": {
+          "description": "",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "default": "smstest0101@gmail.com"
+                  },
+                  "refreshToken": {
+                    "type": "string",
+                    "default": "eyJjdHkiOiJKV1QiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiUlNBLU9BRVAifQ.13lXqxFX-bKymihxnVUDtJuEPSJ_05L6jLraJGB0b_M4Ai9LeIjTKOiLCjQTecjGKvwJsc4GiLlEywXmuaLWmVVf411l8lRkZIR8_UXCLi9iXNWrcwHr-EgHP3tjB8YmJp7ZGgW_YH6VacrN1PBiEBSTAWgDK4WXVVA3hJ3OSenWohYUcuoTveRAUbtbpwEoglmHAhWpzClgae0av0dUzjTs1Duw8z7vI1QmqjUs0yYha5iGDytS5QJ5Qxa-ajGfSZxLQKa6vxceTCV6fiqST30oT4H8pWdJfh0xcryvyzHqJkCC0omS7ifL1EUF57LvqlLeE6XMRHt9BHdl5-iVlA.N7pB7ep1Gy7ohK7j.NdgO8-N30L7MeUJCY6fAbnVGaMrj4rs0bVjNhOEXGRvGt5iCOuCO_mGa7nYFiEZfYYJx4oEc8ZFKW-A3VJw_D9Fo_SEFoeivO4TPI-j9SLi1HwBmY7p4D5qY6oH0hfBwwcLFX0JMvpdjsqaOM1o8LzxZWTA68bHCcUP1gazh0xXqOcIn0o30skaFlg5ePO-zPrT7xc0eIZyaTLGzQYvmlZdB__Gg7uDec0PVYWu4ggl6S7a6vYeiUdT3yeHWtufh1X76xqg7rOX3kM_SQV9TbebCdZ_78pOlrKOMu1huZSMz0aygNXH9j5EPdHaiV_zLg7cvkljnXytAWwCf7K0FdFrCoi01AoY5XJdVeUppzCDj-RzgmFROJD8o0Ma_Tki9HVMHDD71WK_xeMvXFQq2CBbl64fvkadh6qfqlauaDuAgYs8a2HiS154zvtvIHyTeEL9qF07pmGex7Yf8GV8jvwYyzIgz1Sshc8_23Y6sKHagONfeVWdykx4OMdC1HtWDLvnnPShcpZxZe1YpHVoYc_spPciCpvOpjwni9mWjYxibaZ_balvOjaqXZbvDfn0qccmEp_dNTjRq2F0OlMRkY1NfSridY-nfsYxckLpq2lbsfpnys9VyCURmrjMUHl73u8izEW2Ltn_Hqn7XVMoa84IbbSsPySyT8tdnHlCgToWy9qHKxnv_5E6wyStrlMDAXo4Ga18ogov9UY7kOkPI5tlXlIFNkNp4-UCCbgn16vnKEnx_m5EceUnHEtC35xM6YgP0AaiYu1ZPB2AEmRnVlOxvljNis5dQTWELoeuQW2l4OXOQw1hkWJY9N6O3tRq6U5FYhny0lz7fZP7yKfmEvvsR0aQK6n31_8kJC9HmUvvNZWPDnmk9U6NWoTTgWLzf4H5rhGYt5J8eNFeDYYRgGSf2wb21sMCcGi64PbIkocyxDFLyQmWHq4ZVi-1TgMO6wCXWpsFSMwpteKYD49LIMMe0xkYDdmt79_eHRS-MbH1dXK9ENtKfv8Hu8RBJG_vO_vDXxcR8xYHd17PPcHabu-TqrMQJXsyYJ-PftFot46M9u52S4SzqvGDyZD26b3cylHmBJh27Z-xDu9NowW9ZrEd_ErGsnYLyHn7pcy3behKFySCjx3KDMw3DmKtbAMeptesdJnI-bKacprrDMUqyN5Mpv2Vp2veGpi7MKBM37Foq3ZHBZCfks2zZuNz_r4Q3XYWbuTcwT-LuQL9uhnudP9-rtfLutZcqCKtbhwBY3h9TZl0Xl9c96olGR3UoKKMPeWaGlWfP.gVjjT_kX6dcwHPSTb2mD1w"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string",
+                      "description": ""
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/report/provider-revenue": {
+      "post": {
+        "tags": [
+          "4. Report"
+        ],
+        "summary": "Provider Revenue Report",
+        "description": "Displays all expected, deferred (money received but services are not provided yet) and collected/earned revenue excluding sessions paid by packages/memberships or credits.",
+        "operationId": "ProviderRevenueReport",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "requestBody": {
+          "description": "Displays all expected, deferred (money received but services are not provided yet) and collected/earned revenue excluding sessions paid by packages/memberships or credits.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ProviderRevenueReportRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SearchSortPagingRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "docs": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/ProviderRevenueReportResponse"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/report/general-visit": {
+      "post": {
+        "tags": [
+          "4. Report"
+        ],
+        "summary": "General Visit Report",
+        "description": "Displays Checked In, In Progress, and Checked Out appointment information including all revenue earned.",
+        "operationId": "GeneralVisitReport",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "requestBody": {
+          "description": "Displays Checked In, In Progress, and Checked Out appointment information including all revenue earned.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/GeneralVisitReportRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SearchSortPagingRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralVisitReportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/report/demographics": {
+      "post": {
+        "tags": [
+          "4. Report"
+        ],
+        "summary": "Demographics Report",
+        "description": "Displays all patients and their personal demographic information.",
+        "operationId": "DemographicsReport",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "requestBody": {
+          "description": "Displays all patients and their personal demographic information.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/DemographicsReportRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SearchSortPagingRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "docs": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/DemographicsReportResponse"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/report/patient": {
+      "post": {
+        "tags": [
+          "4. Report"
+        ],
+        "summary": "Patient Report",
+        "description": "Displays patients based on their account registration and first/last appointment info.",
+        "operationId": "PatientReport",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "requestBody": {
+          "description": "Displays patients based on their account registration and first/last appointment info.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PatientReportRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SearchSortPagingRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "docs": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/PatientReportResponse"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/report/contact-logs": {
+      "post": {
+        "tags": [
+          "4. Report"
+        ],
+        "summary": "Contact Logs Report",
+        "description": "Displays contact log based on their account registration.",
+        "operationId": "ContactLogsReport",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "requestBody": {
+          "description": "Displays contact log based on their account registration.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ContactLogReportRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SearchSortPagingRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "docs": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/ContactLogReportResponse"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/report/packages-memberships": {
+      "post": {
+        "tags": [
+          "4. Report"
+        ],
+        "summary": "Package Membership Report",
+        "description": "Displays patients based on their account registration and first/last appointment info.",
+        "operationId": "PackageMembershipReport",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "requestBody": {
+          "description": "Displays patients based on their account registration and first/last appointment info.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PackageMemberShipReportRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SearchSortPagingRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "docs": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/PackageMemberShipReportResponse"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/masterdata/services": {
+      "get": {
+        "tags": [
+          "3. Master Data"
+        ],
+        "summary": "Service List",
+        "description": "List all services in your clinic that match searching criteria.",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "serviceName",
+            "in": "query",
+            "description": "A part or the entire Service name you are searching for. Leaving it blank will result in a full list returned.",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagination",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/paginationRequest"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/service"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/masterdata/locations": {
+      "get": {
+        "tags": [
+          "3. Master Data"
+        ],
+        "summary": "Location List",
+        "description": "List all locations of your clinic that match searching criteria.",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "locationName",
+            "in": "query",
+            "description": "A part or the entire Location name you are searching for. Leaving it blank will result in a full list returned.",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagination",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/paginationRequest"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/location"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/masterdata/packages-memberships": {
+      "get": {
+        "tags": [
+          "3. Master Data"
+        ],
+        "summary": "Packages, Memberships & Clinic Credits",
+        "description": "List all Packages, Memberships & Clinic Credits in your clinic that match searching criteria.",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "A part or the entire Package, Membership or Clinic Credit name you are searching for. Leaving it blank will result in a full list returned.",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagination",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/paginationRequest"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/packageMembershipCredit"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/masterdata/inventories": {
+      "get": {
+        "tags": [
+          "3. Master Data"
+        ],
+        "summary": "Inventory Item List",
+        "description": "List all products in your clinic inventory that match searching criteria.",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "productName",
+            "in": "query",
+            "description": "A part or the entire Inventory Item name you are searching for. Leaving it blank will result in a full list returned.",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagination",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/paginationRequest"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/inventoryItem"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/masterdata/patients": {
+      "get": {
+        "tags": [
+          "3. Master Data"
+        ],
+        "summary": "Patient List",
+        "description": "List all patients in your clinic that match searching criteria.",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "patientName",
+            "in": "query",
+            "description": "A part or the entire Patient name you are searching for. Leaving it blank will result in a full list returned.",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagination",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/paginationRequest"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/patient"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/masterdata/clinic-users": {
+      "get": {
+        "tags": [
+          "3. Master Data"
+        ],
+        "summary": "User List",
+        "description": "List all clinic user accounts in your clinic that match searching criteria.",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "query",
+            "description": "A part or the entire User name you are searching for. Leaving it blank will result in a full list returned.",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "roles",
+            "in": "query",
+            "description": "A part or the entire role you are searching for. Leaving it blank will result in a full list returned.",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagination",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/paginationRequest"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/clinicUserResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/masterdata/therapists": {
+      "get": {
+        "tags": [
+          "3. Master Data"
+        ],
+        "summary": "Therapist List",
+        "description": "List all therapist in your clinic that match searching criteria.",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "A part or the entire User name you are searching for. Leaving it blank will result in a full list returned.",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagination",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/paginationRequest"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/clinicUserResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/appointment/available-blocks": {
+      "get": {
+        "tags": [
+          "2. Appointment"
+        ],
+        "summary": "Get Available Block Appointment",
+        "description": "",
+        "operationId": "GetAvailableBlockAppointment",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string",
+              "example": "2024-01-01",
+              "description": ""
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string",
+              "description": "",
+              "example": "2024-01-08"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "therapist",
+            "schema": {
+              "type": "string",
+              "description": "",
+              "example": "5ef1b527c4419d4c9f4fb6ef"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentAvailableBlockResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/appointment/create": {
+      "post": {
+        "tags": [
+          "2. Appointment"
+        ],
+        "summary": "Appointment",
+        "description": "Create Appointment",
+        "operationId": "CreateAppointment",
+        "security": [
+          {
+            "accessToken": []
+          }
+        ],
+        "requestBody": {
+          "description": "Displays Checked In, In Progress, and Checked Out appointment information including all revenue earned.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AppointmentCreateRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentCreateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProviderRevenueReportRequest": {
+        "type": "object",
+        "required": [
+          "startDate",
+          "endDate"
+        ],
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "description": "Start date (DOS) of the finding range in your clinic time zone",
+            "example": "2023-09-01"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "End date (DOS) of the finding range in your clinic time zone",
+            "example": "2023-09-05"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Location IDs got from (/api/masterdata/locations)"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Provider IDs got from (/api/masterdata/providers)"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Service IDs got from(/api/masterdata/services)"
+          },
+          "packagesMemberships": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Package, Membership and Clinic Credit IDs got from(/api/masterdata/packages-memberships)"
+          },
+          "inventories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Inventory Item IDs got from(/api/masterdata/inventories)"
+          }
+        }
+      },
+      "ProviderRevenueReportResponse": {
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "string",
+            "description": "Patient code of each patient"
+          },
+          "patientName": {
+            "type": "string",
+            "description": "Patient fullname"
+          },
+          "therapistName": {
+            "type": "string",
+            "description": "Therapist's fullname"
+          },
+          "location": {
+            "type": "string",
+            "description": "Location's name"
+          },
+          "patientEmail": {
+            "type": "string",
+            "description": "Patient's Email"
+          },
+          "dateOfService": {
+            "type": "string",
+            "description": "Date of service of the appointment"
+          },
+          "revenue": {
+            "type": "number",
+            "description": "The revenue amount of the visit"
+          },
+          "adjustment": {
+            "type": "number",
+            "description": "The adjusment for the invoice of the visit"
+          },
+          "collected": {
+            "type": "number",
+            "description": "The collected amount of the visit"
+          },
+          "dueAmount": {
+            "type": "number",
+            "description": "The due amount of the invoice"
+          },
+          "cpt": {
+            "type": "string",
+            "description": "List of CPT used in the visit"
+          }
+        }
+      },
+      "GeneralVisitReportRequest": {
+        "type": "object",
+        "required": [
+          "dateOfService"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf2"
+          },
+          "dateOfService": {
+            "type": "object",
+            "required": [
+              "startDate",
+              "endDate"
+            ],
+            "properties": {
+              "startDate": {
+                "type": "string",
+                "description": "Start date (DOS) of the finding range in your clinic time zone",
+                "example": "2023-09-01"
+              },
+              "endDate": {
+                "type": "string",
+                "description": "End date (DOS) of the finding range in your clinic time zone",
+                "example": "2023-09-05"
+              }
+            }
+          },
+          "appointmentStatuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "New Appointment",
+                "Arrived",
+                "In process",
+                "Checkout",
+                "Not arrived",
+                "Cancel"
+              ]
+            },
+            "default": [
+              "New Appointment",
+              "Arrived",
+              "In process",
+              "Checkout",
+              "Not arrived",
+              "Cancel"
+            ],
+            "description": "The statuses of appointments you are looking for."
+          },
+          "claimCreated": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "yes",
+                "no"
+              ]
+            },
+            "default": [],
+            "description": ""
+          },
+          "currentResponsibilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Primary",
+                "Secondary",
+                "Tertiary",
+                "patient",
+                "Unidentified"
+              ]
+            },
+            "default": [],
+            "description": "The current PIC for the payment of the appointments you are looking for."
+          },
+          "invoiceStatuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "partlypaid",
+                "paid",
+                "unpaid"
+              ]
+            },
+            "default": [],
+            "description": "The statuses of invoices of the appointments you are looking for."
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Location IDs got from api (/api/masterdata/locations)"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Clinic User IDs got from api (/api/masterdata/providers)"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Service IDs got from api (/api/masterdata/services)"
+          },
+          "patients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Patient IDs got from api (/api/masterdata/patients)"
+          },
+          "inventories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Inventory IDs got from api (/api/masterdata/inventories)"
+          }
+        }
+      },
+      "GeneralVisitReportResponse": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "object",
+            "properties": {
+              "totalAppointments": {
+                "type": "number",
+                "description": "Total appointment in the time range"
+              },
+              "totalCharges": {
+                "type": "number",
+                "description": "Total amount charged in the time range"
+              },
+              "totalPayments": {
+                "type": "number",
+                "description": "Total amount payment of the invoice in the time range"
+              },
+              "totalUnits": {
+                "type": "number",
+                "description": "Total unit of the CPTs using"
+              },
+              "totalPatients": {
+                "type": "number",
+                "description": "Total Patients having visit in the time range"
+              },
+              "averageCharges": {
+                "type": "number",
+                "description": "Average Charges of the invoices in the time range"
+              },
+              "averagePayments": {
+                "type": "number",
+                "description": "Average Payment of the invoices in the time range"
+              },
+              "averageUnits": {
+                "type": "number",
+                "description": "Average CPT's Unit"
+              }
+            }
+          },
+          "docs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_id": {
+                  "type": "string",
+                  "description": "Appointment ID"
+                },
+                "patient": {
+                  "type": "object",
+                  "description": "Patient's information",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "description": "Patient ID"
+                    },
+                    "fullName": {
+                      "type": "string",
+                      "description": "Patient name"
+                    },
+                    "firstName": {
+                      "type": "string",
+                      "description": ""
+                    },
+                    "lastName": {
+                      "type": "string",
+                      "description": ""
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": ""
+                    },
+                    "patientCode": {
+                      "type": "string",
+                      "description": "Patient Code"
+                    },
+                    "totalAppointmentVisit": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "dateOfService": {
+                  "type": "string",
+                  "description": "Date of Service"
+                },
+                "appointmentStatus": {
+                  "type": "string",
+                  "description": "Appointment Status"
+                },
+                "provider": {
+                  "type": "object",
+                  "description": "Clinic User's fullname",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/provider"
+                    }
+                  ]
+                },
+                "service": {
+                  "type": "object",
+                  "description": "Service information",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/service"
+                    }
+                  ]
+                },
+                "location": {
+                  "type": "object",
+                  "description": "Location information",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/location"
+                    }
+                  ]
+                },
+                "invoice": {
+                  "type": "object",
+                  "description": "Invoice information",
+                  "properties": {
+                    "invoiceStatus": {
+                      "type": "string",
+                      "description": "Invoice status paid,unpaid, or partlypaid"
+                    },
+                    "invoiceNo": {
+                      "type": "string",
+                      "description": "The unique code of the invoice"
+                    },
+                    "currentResponsibility": {
+                      "type": "string",
+                      "description": "The responsibilities of the invoice"
+                    },
+                    "packageInvoiceNumber": {
+                      "type": "string",
+                      "description": "Invoice Package Number"
+                    },
+                    "packageInvoiceName": {
+                      "type": "string",
+                      "description": "Invoice Package Name"
+                    }
+                  }
+                },
+                "claimCreatedInfo": {
+                  "type": "string",
+                  "description": "The claim created or not"
+                },
+                "charges": {
+                  "type": "number",
+                  "description": "Charges amount of the invoice"
+                },
+                "payments": {
+                  "type": "number",
+                  "description": "Payment amount of the invoice"
+                },
+                "units": {
+                  "type": "number",
+                  "description": "CPT units of the invoice"
+                },
+                "createdBy": {
+                  "type": "number",
+                  "description": "The creator of the invoice"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "Reason value"
+                },
+                "lastUpdateBy": {
+                  "type": "string",
+                  "description": ""
+                },
+                "lastUpdateDate": {
+                  "type": "string",
+                  "description": ""
+                },
+                "cancellationNotice": {
+                  "type": "string",
+                  "description": ""
+                },
+                "treatmentNote": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    },
+                    "treatmentNoteNo": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "DemographicsReportRequest": {
+        "type": "object",
+        "required": [
+          ""
+        ],
+        "properties": {
+          "listMonth": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12
+              ]
+            },
+            "description": "Months",
+            "default": []
+          },
+          "listInsurance": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "hasIns",
+                "none"
+              ]
+            },
+            "description": "Whether or not a patient has insurance info registered.",
+            "default": []
+          },
+          "fromYear": {
+            "type": "number",
+            "description": "The start Year of your finding range.",
+            "default": 1970
+          },
+          "toYear": {
+            "type": "number",
+            "description": "The end Year of your finding range.",
+            "default": 2023
+          },
+          "zipCode": {
+            "type": "string",
+            "description": "",
+            "default": ""
+          }
+        }
+      },
+      "DemographicsReportResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": ""
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Patient's First Name"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Patient's Last Name"
+          },
+          "email": {
+            "type": "string",
+            "description": "Patient's Email"
+          },
+          "dateOfBirth": {
+            "type": "number",
+            "description": "Patient's date of birth"
+          },
+          "monthOfBirth": {
+            "type": "number",
+            "description": "Patient's month of birth"
+          },
+          "yearOfBirth": {
+            "type": "number",
+            "description": "Patient's year of birth"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "Patient's phone number"
+          },
+          "zipCode": {
+            "type": "string",
+            "description": "Patient's zip code"
+          },
+          "address": {
+            "type": "string",
+            "description": "Patient's address"
+          },
+          "city": {
+            "type": "string",
+            "description": "Patient's city address"
+          },
+          "state": {
+            "type": "string",
+            "description": "Patient's state address"
+          },
+          "insuranceInfo": {
+            "type": "string",
+            "description": "Patient's Insurance Info"
+          },
+          "openCaseStr": {
+            "type": "string",
+            "description": "Patient's ICD Open case"
+          },
+          "closeCaseStr": {
+            "type": "string",
+            "description": "Patient's ICD Close case"
+          },
+          "dependentOf": {
+            "type": "object",
+            "$ref": "#/components/schemas/dependentOfResponse"
+          }
+        }
+      },
+      "PatientReportRequest": {
+        "type": "object",
+        "required": [
+          "createdDate"
+        ],
+        "properties": {
+          "createdDate": {
+            "type": "object",
+            "required": [
+              "startDate",
+              "endDate"
+            ],
+            "properties": {
+              "startDate": {
+                "type": "string",
+                "example": "2023-01-01",
+                "description": "Start date of the finding range in your clinic time zone"
+              },
+              "endDate": {
+                "type": "string",
+                "description": "End date of the finding range in your clinic time zone",
+                "example": "2023-09-08"
+              },
+              "timeRange": {
+                "type": "string",
+                "example": "All"
+              }
+            }
+          },
+          "firstAppointmentDate": {
+            "type": "object",
+            "properties": {
+              "startDate": {
+                "type": "string",
+                "description": "Start date of the finding range in your clinic time zone",
+                "example": "2023-09-01"
+              },
+              "endDate": {
+                "type": "string",
+                "description": "End date of the finding range in your clinic time zone",
+                "example": "2023-09-05"
+              }
+            }
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Location IDs got from api (/api/masterdata/locations)"
+          },
+          "createdBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "The provider IDs who created the patient got from api (/api/masterdata/clinic-users)"
+          },
+          "firstSeenBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "The provider IDs first seen the patient got from api (/api/masterdata/therapists)"
+          },
+          "lastSeenBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "The provider IDs last see the patient got api (/api/masterdata/therapists)"
+          },
+          "accountAccess": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "LoggedIn",
+                "PendingFirstLogin"
+              ]
+            },
+            "description": "Whether or not a patient has ever login to the system.",
+            "default": []
+          },
+          "hasAppointments": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Y",
+                "N"
+              ]
+            },
+            "description": "Whether or not a patient has ever scheduled an appointment."
+          },
+          "patientStatus": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Y",
+                "N"
+              ]
+            },
+            "description": "Whether a patient account is currently activated or not."
+          }
+        }
+      },
+      "PatientReportResponse": {
+        "type": "object",
+        "properties": {
+          "patientName": {
+            "type": "string",
+            "description": ""
+          },
+          "patientId": {
+            "type": "string",
+            "description": ""
+          },
+          "email": {
+            "type": "string",
+            "description": ""
+          },
+          "phone": {
+            "type": "string",
+            "description": ""
+          },
+          "registrationDateStr": {
+            "type": "string",
+            "description": ""
+          },
+          "registrationBy": {
+            "type": "string",
+            "description": ""
+          },
+          "firstLoginDateStr": {
+            "type": "string",
+            "description": ""
+          },
+          "lastLoginDateStr": {
+            "type": "string",
+            "description": ""
+          },
+          "totalLastLogins": {
+            "type": "number",
+            "description": ""
+          },
+          "firstAppointment": {
+            "type": "object",
+            "description": "",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "startDate": {
+                "type": "string"
+              }
+            }
+          },
+          "lastAppointment": {
+            "type": "object",
+            "description": "",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "startDate": {
+                "type": "string"
+              }
+            }
+          },
+          "nextAppointment": {
+            "type": "object",
+            "description": "",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "startDate": {
+                "type": "string"
+              }
+            }
+          },
+          "lastTherapist": {
+            "type": "object",
+            "description": "",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            }
+          },
+          "packageMembership": {
+            "type": "object",
+            "$ref": "#/components/schemas/patientPackageMembership"
+          },
+          "firstAppointmentLocation": {
+            "type": "string",
+            "description": ""
+          },
+          "firstSeenBy": {
+            "type": "string",
+            "description": ""
+          },
+          "lastSeenBy": {
+            "type": "string",
+            "description": ""
+          },
+          "referredByName": {
+            "type": "string",
+            "description": ""
+          },
+          "payersName": {
+            "type": "string",
+            "description": ""
+          },
+          "totalRevenue": {
+            "type": "number",
+            "description": ""
+          },
+          "totalCollected": {
+            "type": "number",
+            "description": ""
+          },
+          "status": {
+            "type": "string",
+            "description": ""
+          },
+          "dependentOf": {
+            "type": "object",
+            "$ref": "#/components/schemas/dependentOfResponse"
+          },
+          "totalAppointmentVisit": {
+            "type": "number"
+          },
+          "totalSessionCompleted": {
+            "type": "number"
+          }
+        }
+      },
+      "ContactLogReportRequest": {
+        "type": "object",
+        "required": [
+          ""
+        ],
+        "properties": {
+          "methods": {
+            "type": "array",
+            "description": "",
+            "example": "",
+            "items": {
+              "type": "string"
+            }
+          },
+          "patients": {
+            "type": "array",
+            "description": "",
+            "example": "",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ContactLogReportResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": ""
+          },
+          "method": {
+            "type": "string",
+            "description": ""
+          },
+          "topic": {
+            "type": "object",
+            "description": "",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "createdBy": {
+            "type": "object",
+            "description": "",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "patient": {
+            "type": "object",
+            "description": "",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "logTime": {
+            "type": "string",
+            "description": ""
+          },
+          "createdAt": {
+            "type": "string",
+            "description": ""
+          },
+          "previousLog": {
+            "type": "object",
+            "description": "",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "logTime": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string"
+              },
+              "topic": {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "PackageMemberShipReportResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": ""
+          },
+          "name": {
+            "type": "string",
+            "description": ""
+          },
+          "type": {
+            "type": "string",
+            "description": ""
+          },
+          "expirationRenewal": {
+            "type": "string",
+            "description": ""
+          },
+          "serviceCharges": {
+            "type": "number",
+            "description": ""
+          },
+          "servicesClasses": {
+            "type": "array",
+            "description": "",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_id": {
+                  "type": "string",
+                  "description": ""
+                },
+                "serviceClass": {
+                  "type": "string",
+                  "description": ""
+                },
+                "price": {
+                  "type": "number",
+                  "description": ""
+                },
+                "numberOfSessions": {
+                  "type": "number",
+                  "description": ""
+                },
+                "totalAmount": {
+                  "type": "number",
+                  "description": ""
+                }
+              }
+            }
+          },
+          "patients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_id": {
+                  "type": "string",
+                  "description": ""
+                },
+                "name": {
+                  "type": "string",
+                  "description": ""
+                },
+                "patientCode": {
+                  "type": "string",
+                  "description": ""
+                },
+                "purchasedDate": {
+                  "type": "string",
+                  "description": ""
+                },
+                "detail": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "service": {
+                        "type": "string",
+                        "description": ""
+                      },
+                      "session": {
+                        "type": "string",
+                        "description": ""
+                      },
+                      "used": {
+                        "type": "string",
+                        "description": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "PackageMemberShipReportRequest": {
+        "type": "object",
+        "required": [
+          "createdDate"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "default": "",
+            "description": "Package Membership ID"
+          },
+          "name": {
+            "type": "string",
+            "default": "",
+            "description": "The provider name of Package and Membership"
+          }
+        }
+      },
+      "SearchSortPagingRequest": {
+        "type": "object",
+        "properties": {
+          "searchStr": {
+            "type": "string",
+            "format": "string24",
+            "maxLength": 255,
+            "description": "Texts that filtered record may contain",
+            "default": ""
+          },
+          "sorting": {
+            "type": "object",
+            "properties": {
+              "sortBy": {
+                "type": "string",
+                "description": "",
+                "default": ""
+              },
+              "sortType": {
+                "type": "string",
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "description": "asc/desc"
+              }
+            }
+          },
+          "paging": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/paginationRequest"
+              }
+            ]
+          }
+        }
+      },
+      "AppointmentAvailableBlockRequest": {
+        "type": "object",
+        "required": [
+          "startDate",
+          "endDate",
+          "therapist"
+        ],
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "description": "Start date (DOS) of the finding range in your clinic time zone",
+            "example": "2024-01-01"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "End date (DOS) of the finding range in your clinic time zone",
+            "example": "2024-01-08"
+          },
+          "therapist": {
+            "type": "string",
+            "description": "",
+            "example": "600902030b0e1745d02e097d"
+          }
+        }
+      },
+      "AppointmentAvailableBlockResponse": {
+        "type": "object",
+        "properties": {
+          "docs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "startDateTime": {
+                  "type": "string",
+                  "description": ""
+                },
+                "endDateTime": {
+                  "type": "string",
+                  "description": ""
+                },
+                "location": {
+                  "type": "object",
+                  "$ref": "#/components/schemas/location"
+                },
+                "service": {
+                  "type": "object",
+                  "$ref": "#/components/schemas/service"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AppointmentCreateRequest": {
+        "type": "object",
+        "required": [
+          "provider",
+          "location"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "",
+            "example": "5ef1b527c4419d4c9f4fb6ef"
+          },
+          "location": {
+            "type": "string",
+            "description": "",
+            "example": "5ef1b527c4419d4c9f4fb6fb"
+          },
+          "email": {
+            "type": "string",
+            "description": "",
+            "example": "qwert12@yopmail.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "",
+            "example": "12055555555"
+          },
+          "patient": {
+            "type": "string",
+            "description": "",
+            "example": ""
+          },
+          "service": {
+            "type": "string",
+            "description": "",
+            "example": "5ef1b527c4419d4c9f4fb6f0"
+          },
+          "date": {
+            "type": "string",
+            "description": "",
+            "example": "2024-01-05"
+          },
+          "startTime": {
+            "type": "string",
+            "description": "Start time (DOS) of the finding range in your clinic time zone",
+            "example": "15:10"
+          },
+          "endTime": {
+            "type": "string",
+            "description": "End time (DOS) of the finding range in your clinic time zone",
+            "example": "15:50"
+          }
+        }
+      },
+      "AppointmentCreateResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "",
+            "example": "Appointment Booked!"
+          }
+        }
+      },
+      "service": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf2"
+          },
+          "name": {
+            "type": "string",
+            "example": "Lynn service membership"
+          }
+        }
+      },
+      "provider": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf2"
+          },
+          "name": {
+            "type": "string",
+            "example": "Lynn service membership"
+          }
+        }
+      },
+      "location": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf2"
+          },
+          "name": {
+            "type": "string",
+            "example": "Lynn service membership"
+          }
+        }
+      },
+      "inventoryItem": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf2"
+          },
+          "name": {
+            "type": "string",
+            "example": "Lynn service membership"
+          }
+        }
+      },
+      "packageMembershipCredit": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Package Membership"
+          }
+        }
+      },
+      "patient": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24"
+          },
+          "name": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "therapistResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Package Membership"
+          }
+        }
+      },
+      "clinicUserResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Package Membership"
+          }
+        }
+      },
+      "paginationRequest": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "description": "Page index",
+            "default": 1
+          },
+          "pageSize": {
+            "type": "number",
+            "default": 100,
+            "description": "Number of records a page will display"
+          }
+        }
+      },
+      "dependentOfResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "string24",
+            "example": "5a339fda25169f36f8868cf1"
+          },
+          "FirstName": {
+            "type": "string",
+            "example": ""
+          },
+          "LastName ": {
+            "type": "string",
+            "example": ""
+          },
+          "MiddleName": {
+            "type": "string",
+            "example": ""
+          },
+          "Email": {
+            "type": "string",
+            "example": ""
+          }
+        }
+      },
+      "patientPackageMembership": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "detail": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "service": {
+                    "type": "string"
+                  },
+                  "total": {
+                    "type": "number"
+                  },
+                  "used": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "400": {
+        "description": "Bad request.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "You do not have permission to access the API.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "accessToken": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "Get accessToken from /auth/token or /auth/refresh_token"
+      }
+    }
+  }
+}

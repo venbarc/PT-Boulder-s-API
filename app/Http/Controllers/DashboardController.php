@@ -141,7 +141,7 @@ class DashboardController extends Controller
                 'columns' => PteDemographic::EXPORT_COLUMNS,
                 'label' => 'Demographics',
                 'export_route' => 'export.demographics',
-                'sync_command' => 'php artisan pte:sync-demographics --from=2024-01-01 --to=2025-12-31',
+                'sync_command' => 'php artisan pte:sync-demographics',
                 'order_column' => 'year_of_birth',
                 'panel' => 'report',
             ],

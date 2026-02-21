@@ -37,7 +37,7 @@ class PteSyncNightly extends Command
             ],
             [
                 'name' => 'pte:sync-demographics',
-                'options' => ['--from' => $from, '--to' => $to, '--triggered-by' => 'scheduler'],
+                'options' => ['--triggered-by' => 'scheduler'],
             ],
         ];
 
