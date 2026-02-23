@@ -9,6 +9,78 @@ use Illuminate\Http\Request;
 
 class GeneralVisitApiController extends Controller
 {
+    /**
+     * @var array<int, string>
+     */
+    private const DOC_COLUMNS = [
+        'pte_visit_id',
+        'pte_patient_id',
+        'patient_full_name',
+        'patient_first_name',
+        'patient_last_name',
+        'patient_email',
+        'patient_code',
+        'patient_total_appointment_visit',
+        'date_of_service',
+        'appointment_status',
+        'provider_id',
+        'provider_name',
+        'service_id',
+        'service_name',
+        'location_id',
+        'location_name',
+        'invoice_status',
+        'invoice_number',
+        'current_responsibility',
+        'package_invoice_number',
+        'package_invoice_name',
+        'claim_created_info',
+        'created_by',
+        'reason',
+        'last_update_by',
+        'last_update_date',
+        'cancellation_notice',
+        'treatment_note_id',
+        'treatment_note_number',
+        'units',
+        'charges',
+        'payments',
+        'summary_total_appointments',
+        'summary_total_charges',
+        'summary_total_payments',
+        'summary_total_units',
+        'summary_total_patients',
+        'summary_average_charges',
+        'summary_average_payments',
+        'summary_average_units',
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    private const INT_COLUMNS = [
+        'patient_total_appointment_visit',
+        'summary_total_appointments',
+        'summary_total_patients',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    private const FLOAT_COLUMNS = [
+        'units',
+        'charges',
+        'payments',
+        'summary_total_charges',
+        'summary_total_payments',
+        'summary_total_units',
+        'summary_average_charges',
+        'summary_average_payments',
+        'summary_average_units',
+    ];
+
     public function index(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -45,59 +117,42 @@ class GeneralVisitApiController extends Controller
         $paginator = (clone $baseQuery)
             ->orderByDesc('date_of_service')
             ->orderByDesc('id')
-            ->paginate($perPage, ['*'], 'page', $page);
+            ->paginate($perPage, self::DOC_COLUMNS, 'page', $page);
 
         $docs = $paginator->getCollection()->map(function (PteGeneralVisit $row): array {
-            if (is_array($row->raw_data) && $row->raw_data !== []) {
-                return $row->raw_data;
+            $line = [];
+            foreach (self::DOC_COLUMNS as $column) {
+                $value = $row->{$column} ?? null;
+                if ($value instanceof \DateTimeInterface) {
+                    $line[$column] = $column === 'date_of_service'
+                        ? $value->format('Y-m-d')
+                        : $value->format('Y-m-d H:i:s');
+
+                    continue;
+                }
+
+                if ($value === null || $value === '') {
+                    $line[$column] = null;
+
+                    continue;
+                }
+
+                if (in_array($column, self::INT_COLUMNS, true)) {
+                    $line[$column] = (int) $value;
+
+                    continue;
+                }
+
+                if (in_array($column, self::FLOAT_COLUMNS, true)) {
+                    $line[$column] = round((float) $value, 2);
+
+                    continue;
+                }
+
+                $line[$column] = (string) $value;
             }
 
-            return [
-                '_id' => $row->pte_visit_id,
-                'dateOfService' => optional($row->date_of_service)?->format('Y-m-d'),
-                'appointmentStatus' => $row->appointment_status,
-                'patient' => [
-                    '_id' => $row->pte_patient_id,
-                    'fullName' => $row->patient_full_name,
-                    'firstName' => $row->patient_first_name,
-                    'lastName' => $row->patient_last_name,
-                    'email' => $row->patient_email,
-                    'patientCode' => $row->patient_code,
-                    'totalAppointmentVisit' => $row->patient_total_appointment_visit,
-                ],
-                'provider' => [
-                    '_id' => $row->provider_id,
-                    'name' => $row->provider_name,
-                ],
-                'service' => [
-                    '_id' => $row->service_id,
-                    'name' => $row->service_name,
-                ],
-                'location' => [
-                    '_id' => $row->location_id,
-                    'name' => $row->location_name,
-                ],
-                'invoice' => [
-                    'invoiceStatus' => $row->invoice_status,
-                    'invoiceNo' => $row->invoice_number,
-                    'currentResponsibility' => $row->current_responsibility,
-                    'packageInvoiceNumber' => $row->package_invoice_number,
-                    'packageInvoiceName' => $row->package_invoice_name,
-                ],
-                'claimCreatedInfo' => $row->claim_created_info,
-                'charges' => (float) ($row->charges ?? 0),
-                'payments' => (float) ($row->payments ?? 0),
-                'units' => (float) ($row->units ?? 0),
-                'createdBy' => $row->created_by,
-                'reason' => $row->reason,
-                'lastUpdateBy' => $row->last_update_by,
-                'lastUpdateDate' => optional($row->last_update_date)?->toISOString(),
-                'cancellationNotice' => $row->cancellation_notice,
-                'treatmentNote' => [
-                    '_id' => $row->treatment_note_id,
-                    'treatmentNoteNo' => $row->treatment_note_number,
-                ],
-            ];
+            return $line;
         })->values();
 
         return response()->json([
