@@ -104,7 +104,7 @@ class DashboardController extends Controller
      *     export_route: string,
      *     sync_command: string,
      *     order_column: string,
-     *     panel: 'report'|'masterdata'
+     *     panel: 'appointment'|'report'|'masterdata'
      * }>
      */
     private function sourceConfigMap(): array
@@ -206,7 +206,7 @@ class DashboardController extends Controller
     /**
      * @param  array<string, array{
      *     label: string,
-     *     panel: 'report'|'masterdata'
+     *     panel: 'appointment'|'report'|'masterdata'
      * }>  $sources
      * @return array<int, array{
      *     key: string,

@@ -58,6 +58,7 @@
         <h1>PT Boulder</h1>
         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
         <a href="{{ route('pull-history') }}" class="{{ request()->routeIs('pull-history') ? 'active' : '' }}">Pull History</a>
+        <a href="{{ route('api-docs') }}" class="{{ request()->routeIs('api-docs') || request()->routeIs('api-docs.openapi') ? 'active' : '' }}">API</a>
         <div class="nav-spacer"></div>
         <select class="nav-export-select" onchange="if(this.value){ window.location=this.value; this.selectedIndex=0; }">
             <option value="">Download CSV...</option>

@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\ApiDocsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/pull-history', [DashboardController::class, 'pullHistory'])->name('pull-history');
+Route::get('/api-docs', [ApiDocsController::class, 'index'])->name('api-docs');
+Route::get('/api-docs/openapi.json', [ApiDocsController::class, 'openApi'])->name('api-docs.openapi');
 Route::get('/export/provider-revenue', [ExportController::class, 'exportProviderRevenueCsv'])->name('export.provider_revenue');
 Route::get('/export/general-visit', [ExportController::class, 'exportGeneralVisitCsv'])->name('export.general_visit');
 Route::get('/export/patient-report', [ExportController::class, 'exportPatientReportCsv'])->name('export.patient_report');
