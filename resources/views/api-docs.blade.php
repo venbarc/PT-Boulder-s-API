@@ -3,6 +3,10 @@
 
 @section('content')
     <style>
+        .container {
+            max-width: 100% !important;
+            padding: 0 1.25rem !important;
+        }
         .docs-card {
             background: white;
             border-radius: 8px;
@@ -23,12 +27,39 @@
             border-top: 1px solid #e5e7eb;
             padding-top: 0.75rem;
         }
+        .api-docs-root .swagger-ui {
+            font-family: Menlo, Consolas, Monaco, "Courier New", monospace;
+            color: #111827;
+        }
+        .api-docs-root .swagger-ui table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+        }
+        .api-docs-root .swagger-ui table th,
+        .api-docs-root .swagger-ui table td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.45rem 0.55rem;
+            vertical-align: top;
+        }
+        .api-docs-root .swagger-ui .model-box {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+        }
+        .api-docs-root .swagger-ui .opblock .opblock-summary-description {
+            font-weight: 600;
+        }
+        .api-docs-root .swagger-ui .responses-wrapper .response-col_status {
+            min-width: 80px;
+        }
         .swagger-ui .topbar {
             display: none;
         }
     </style>
 
-    <div class="docs-card">
+    <div class="docs-card api-docs-root">
         <h2>API Swagger</h2>
         <div class="docs-meta">
             Auth endpoint: <code>POST /api/auth/token</code> |
@@ -46,6 +77,15 @@
                 url: "{{ route('api-docs.openapi') }}",
                 dom_id: '#swagger-ui',
                 deepLinking: true,
+                docExpansion: 'list',
+                defaultModelsExpandDepth: -1,
+                defaultModelExpandDepth: 1,
+                defaultModelRendering: 'example',
+                displayRequestDuration: true,
+                showExtensions: false,
+                showCommonExtensions: false,
+                filter: true,
+                tryItOutEnabled: true,
                 presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
                 layout: "BaseLayout"
             });
